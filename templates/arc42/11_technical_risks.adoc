@@ -1,0 +1,11 @@
+[[section-technical-risks]]
+== Technical Risks and Technical Debt
+
+This section captures known technical risks and areas of technical debt.
+For the full TDR log, see the link:../tdrs/[tdrs/] directory.
+
+// Shift headings down by 1 level for all included TDR files
+:leveloffset: +1
+
+// Reset the offset back to normal for any content below
+:leveloffset: -1

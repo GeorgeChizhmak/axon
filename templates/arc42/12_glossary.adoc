@@ -1,0 +1,16 @@
+[[section-glossary]]
+== Glossary
+
+// TODO: Define all domain-specific and technical terms used throughout this document.
+// Keep definitions concise and precise.
+
+[options="header", cols="1,3"]
+|===
+|Term | Definition
+| [Term 1] | [Precise definition in the context of PROJECT_NAME]
+| [Term 2] | [Precise definition in the context of PROJECT_NAME]
+| [Term 3] | [Precise definition in the context of PROJECT_NAME]
+| API       | Application Programming Interface — a contract defining how software components communicate.
+| ADR       | Architecture Decision Record — a document capturing an important architectural decision.
+| TDR       | Technical Debt Record — a document capturing a known technical risk or area of debt.
+|===

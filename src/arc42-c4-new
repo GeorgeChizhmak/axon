@@ -1,0 +1,210 @@
+#!/usr/bin/env bash
+set -euo pipefail
+eval "$($(dirname "$0")/arc42-c4-config)"
+
+## usage: arc42-c4 new <TYPE> <TITLE WORDS...> [-s SUPERSEDED]
+##
+## Creates a new, numbered document of the given type. The TITLE WORDS are
+## concatenated to form the document title. The file is opened for editing in
+## the editor specified by the VISUAL or EDITOR environment variable (VISUAL
+## is preferred). After editing, the filename is printed to stdout.
+##
+## TYPE must be one of:
+##   adr         Architecture Decision Record  → adrs/
+##   tdr         Technical Debt / Risk Record  → tdrs/
+##   experiment  Tracked experiment            → experiments/
+##   data-card   Dataset documentation card    → data-cards/
+##   model-card  ML model documentation card   → model-cards/
+##   runbook     Operational runbook           → runbooks/
+##   guideline   Coding / design guideline     → guidelines/
+##
+## Options:
+##   -s NUM    Mark existing document NUM as superseded by the new document
+##             (only applies to adr and tdr types)
+##
+## Examples:
+##   arc42-c4 new adr "Use PostgreSQL as the operational database"
+##   arc42-c4 new adr -s 3 "Switch to CockroachDB for global deployments"
+##   arc42-c4 new tdr "Memory leak in NLP worker under high load"
+##   arc42-c4 new experiment "Redis vs Memcached for session storage"
+##   arc42-c4 new data-card "Raw User Events Dataset"
+##   arc42-c4 new model-card "Sentiment Classifier v2"
+##   arc42-c4 new runbook "Deploy to Kubernetes Production"
+##   arc42-c4 new guideline "REST API Design Standards"
+##
+## Once an experiment succeeds, promote it to an ADR:
+##   arc42-c4 promote <EXPERIMENT_NUM>
+
+# ── Colours ───────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+success() { echo -e "${GREEN}[arc42-c4] ✓${NC} $*"; }
+error()   { echo -e "${RED}[arc42-c4] ✗${NC} $*" >&2; }
+
+# ── Type → subdir + aggregator mapping ───────────────────────────────────────
+declare -A TYPE_DIRS=(
+    [adr]="adrs"
+    [tdr]="tdrs"
+    [data-card]="data-cards"
+    [model-card]="model-cards"
+    [runbook]="runbooks"
+    [guideline]="guidelines"
+    [experiment]="experiments"
+)
+
+# Arc42 aggregator files that get auto-updated with include:: directives
+declare -A TYPE_AGGREGATORS=(
+    [adr]="arc42/09_architecture_decisions.adoc"
+    [tdr]="arc42/11_technical_risks.adoc"
+)
+
+# Default status per type
+declare -A TYPE_STATUS=(
+    [adr]="ACCEPTED"
+    [tdr]="OPEN"
+    [data-card]="DRAFT"
+    [model-card]="DRAFT"
+    [runbook]="ACTIVE"
+    [guideline]="ACTIVE"
+    [experiment]="ACTIVE"
+)
+
+# ── Parse type ────────────────────────────────────────────────────────────────
+if [ $# -eq 0 ]; then
+    error "No document type given."
+    echo "Usage: arc42-c4 new <TYPE> <TITLE...> [-s NUM]" >&2
+    echo "Types: adr, tdr, data-card, model-card, runbook, guideline" >&2
+    exit 1
+fi
+
+TYPE="$1"
+shift
+
+if [ -z "${TYPE_DIRS[$TYPE]+x}" ]; then
+    error "Unknown document type: '$TYPE'"
+    echo "Valid types: adr, tdr, data-card, model-card, runbook, guideline, experiment" >&2
+    exit 1
+fi
+
+# ── Parse -s (superseded) option ─────────────────────────────────────────────
+SUPERSEDED=()
+while getopts "s:" opt; do
+    case "$opt" in
+        s) SUPERSEDED+=("$OPTARG") ;;
+        *) error "Unknown option: -$opt"; exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# ── Validate title ────────────────────────────────────────────────────────────
+TITLE="$*"
+if [ -z "$TITLE" ]; then
+    error "No title given. Usage: arc42-c4 new $TYPE <Title Words...>"
+    exit 1
+fi
+
+# ── Resolve documentation root ────────────────────────────────────────────────
+# Honour ARC42C4_DOCS_DIR (set by init to avoid double-lookup), else walk up
+if [ -n "${ARC42C4_DOCS_DIR:-}" ]; then
+    DOCS_DIR="$ARC42C4_DOCS_DIR"
+else
+    DOCS_DIR="$("$arc42c4_bin_dir/_arc42c4_dir")"
+fi
+
+SUBDIR="$DOCS_DIR/${TYPE_DIRS[$TYPE]}"
+mkdir -p "$SUBDIR"
+
+# ── Calculate next sequential number ─────────────────────────────────────────
+if ls "$SUBDIR"/*.adoc >/dev/null 2>&1; then
+    MAXID=$(ls "$SUBDIR"/*.adoc 2>/dev/null \
+        | xargs -I{} basename {} \
+        | grep -Eo '^[0-9]+' \
+        | sed 's/^0*//' \
+        | sort -rn \
+        | head -1)
+    NEWNUM=$(( MAXID + 1 ))
+else
+    NEWNUM=1
+fi
+
+NEWID=$(printf "%04d" "$NEWNUM")
+SLUG=$(echo -n "$TITLE" | tr -Ccs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
+DSTFILE="$SUBDIR/${NEWID}-${SLUG}.adoc"
+DATE="${ARC42C4_DATE:-$(date +%Y-%m-%d)}"
+STATUS="${TYPE_STATUS[$TYPE]}"
+
+# ── Choose template ───────────────────────────────────────────────────────────
+# Prefer a custom template in the workspace first, then fall back to built-in
+CUSTOM_TEMPLATE="$DOCS_DIR/templates/${TYPE}.adoc"
+if [ -f "$CUSTOM_TEMPLATE" ]; then
+    TEMPLATE="$CUSTOM_TEMPLATE"
+else
+    TEMPLATE="$arc42c4_template_dir/doc-types/${TYPE}.adoc"
+fi
+
+if [ ! -f "$TEMPLATE" ]; then
+    error "Template not found: $TEMPLATE"
+    exit 1
+fi
+
+# Render template — substitute EXP-NUMBER BEFORE NUMBER to avoid partial match
+sed \
+    -e "s|EXP-NUMBER|EXP-${NEWID}|g" \
+    -e "s|NUMBER|${NEWNUM}|g" \
+    -e "s|TITLE|${TITLE}|g" \
+    -e "s|DATE|${DATE}|g" \
+    -e "s|STATUS|${STATUS}|g" \
+    "$TEMPLATE" > "$DSTFILE"
+
+# ── Handle supersession (-s flag) ─────────────────────────────────────────────
+for target_num in "${SUPERSEDED[@]}"; do
+    target_id=$(printf "%04d" "$target_num")
+    target_file=$(ls "$SUBDIR/${target_id}-"*.adoc 2>/dev/null | head -1)
+
+    if [ -z "$target_file" ]; then
+        echo "[arc42-c4] WARNING: Could not find $TYPE #${target_num} to mark as superseded." >&2
+        continue
+    fi
+
+    # Mark target as superseded (update its Status line)
+    sed -i "s|^\*Status:\* \`.*\`|\*Status:\* \`SUPERSEDED\`|" "$target_file"
+
+    # Append superseded-by note to target
+    echo "" >> "$target_file"
+    echo "_Superseded by link:${NEWID}-${SLUG}.adoc[#${NEWNUM} ${TITLE}]_" >> "$target_file"
+
+    # Append supersedes note to new file
+    echo "" >> "$DSTFILE"
+    echo "_Supersedes link:$(basename "$target_file")[#${target_num}]_" >> "$DSTFILE"
+done
+
+# ── Auto-inject include:: into Arc42 aggregator (ADR + TDR only) ─────────────
+if [ -n "${TYPE_AGGREGATORS[$TYPE]+x}" ]; then
+    AGGREGATOR="$DOCS_DIR/${TYPE_AGGREGATORS[$TYPE]}"
+    if [ -f "$AGGREGATOR" ]; then
+        INCLUDE_LINE="include::../${TYPE_DIRS[$TYPE]}/${NEWID}-${SLUG}.adoc[]"
+        # Insert the separator + include before the closing :leveloffset: -1
+        # Use a temporary file for portability with both GNU and BSD sed
+        TMPFILE=$(mktemp)
+        awk -v line="$INCLUDE_LINE" '
+            /^:leveloffset: -1/ {
+                print ""
+                print "// horizontal line"
+                print "***"
+                print "<<<<"
+                print line
+                print ""
+            }
+            { print }
+        ' "$AGGREGATOR" > "$TMPFILE"
+        mv "$TMPFILE" "$AGGREGATOR"
+    fi
+fi
+
+# ── Open in editor ────────────────────────────────────────────────────────────
+${VISUAL:-${EDITOR:-true}} "$DSTFILE"
+
+success "Created: $DSTFILE"
+echo "$DSTFILE"

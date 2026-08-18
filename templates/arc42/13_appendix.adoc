@@ -1,0 +1,22 @@
+[[section-appendix]]
+== Appendix
+
+// TODO: Include any additional reference material that does not fit naturally in
+// the main sections of this document.
+
+=== References
+
+// TODO: Add links to external resources referenced throughout this document.
+
+* https://arc42.org[arc42 — Architecture Documentation Template]
+* https://c4model.com[C4 Model for Software Architecture]
+* https://structurizr.com[Structurizr — C4 Modelling Tool]
+* https://asciidoc.org[AsciiDoc — Text Documentation Format]
+
+=== Document History
+
+[options="header", cols="1,1,1,3"]
+|===
+|Version | Date | Author | Changes
+| 1.0 | TODAY | AUTHOR | Initial version
+|===

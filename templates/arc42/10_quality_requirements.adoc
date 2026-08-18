@@ -1,0 +1,40 @@
+[[section-quality-requirements]]
+== Quality Requirements
+
+// TODO: Expand on the quality goals from Section 1 with specific, measurable requirements.
+
+=== Quality Tree
+
+// TODO: A quality tree maps quality attributes to specific scenarios.
+// Identify the top quality goals and their sub-attributes.
+
+[plantuml, quality-tree, svg]
+....
+@startuml
+' TODO: Customise this quality tree for your project.
+rectangle "PROJECT_NAME\nQuality Goals" as root
+rectangle "Performance" as perf
+rectangle "Reliability" as rel
+rectangle "Maintainability" as maint
+rectangle "Security" as sec
+
+root --> perf
+root --> rel
+root --> maint
+root --> sec
+@enduml
+....
+
+=== Quality Scenarios
+
+// TODO: Describe concrete quality scenarios — "under condition X, the system does Y in Z time".
+// These make quality requirements testable.
+
+[options="header", cols="1,2,3,2"]
+|===
+|ID | Quality Attribute | Scenario | Target Measure
+| QS-01 | Performance     | [Under load X, response time is] | < N ms
+| QS-02 | Reliability     | [When component X fails, the system] | [Recovers within N seconds]
+| QS-03 | Maintainability | [A developer can add a new feature] | [Within N days]
+| QS-04 | Security        | [An unauthenticated user attempts to access] | [Returns 401 within N ms]
+|===

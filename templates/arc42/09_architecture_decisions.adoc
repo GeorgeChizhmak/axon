@@ -1,0 +1,16 @@
+[[section-architecture-decisions]]
+== Architecture Decisions
+
+This section captures the most significant architecture decisions (ADRs) made during the project.
+For the full ADR log, see the link:../adrs/[adrs/] directory.
+
+// Shift headings down by 1 level for all included ADR files
+:leveloffset: +1
+
+// horizontal line
+***
+<<<<
+include::../adrs/0001-record-architecture-decisions.adoc[]
+
+// Reset the offset back to normal for any content below
+:leveloffset: -1

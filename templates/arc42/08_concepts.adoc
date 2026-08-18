@@ -1,0 +1,50 @@
+[[section-concepts]]
+== Cross-Cutting Concepts
+
+// TODO: Describe concepts and principles that apply across multiple building blocks.
+// These are recurring patterns and how the system addresses them consistently.
+// Examples: security, error handling, logging, i18n, domain model, testing strategy.
+
+=== Domain Model
+
+// TODO: Describe the core domain entities and their relationships.
+// A UML class diagram or simple table works well here.
+
+[options="header", cols="1,3"]
+|===
+|Term | Definition
+| [Entity 1] | [Brief definition in the context of this system]
+| [Entity 2] | [Brief definition in the context of this system]
+|===
+
+=== Security
+
+// TODO: Describe how authentication, authorisation, and data protection are handled.
+
+* *Authentication*: [How users authenticate — e.g., JWT, OAuth2, API Keys]
+* *Authorisation*: [How permissions are enforced — e.g., RBAC, ABAC]
+* *Data Protection*: [How sensitive data is protected — e.g., encryption at rest and in transit]
+
+=== Error Handling
+
+// TODO: Describe the system-wide strategy for handling errors.
+
+* [Describe how errors propagate through the system]
+* [Describe how errors are surfaced to users]
+* [Describe retry / circuit breaker strategies if applicable]
+
+=== Logging and Observability
+
+// TODO: Describe the logging, metrics, and tracing strategy.
+
+* *Logging*: [Tool and format — e.g., structured JSON logs via Loki]
+* *Metrics*: [Tool — e.g., Prometheus + Grafana]
+* *Tracing*: [Tool — e.g., OpenTelemetry + Jaeger]
+
+=== Testing Strategy
+
+// TODO: Summarise the testing approach.
+
+* *Unit Tests*: [Coverage scope and tooling]
+* *Integration Tests*: [Scope and tooling]
+* *End-to-End Tests*: [Scope and tooling]

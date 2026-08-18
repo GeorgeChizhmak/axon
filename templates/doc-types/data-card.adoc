@@ -1,0 +1,50 @@
+== Data Card: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE
+====
+
+=== Dataset Description
+
+* *Dataset Name:* TITLE
+* *Summary:* A brief one-sentence summary of what this dataset contains.
+* *Intended Use:* The primary purpose of this dataset and its downstream consumers.
+* *Storage Location:* Where the dataset is physically stored (e.g., S3, MinIO, PostgreSQL).
+
+=== Dataset Structure
+
+==== Data Fields
+
+Describe the schema / fields of the dataset.
+
+* `field_name` (Type): Description of this field and its meaning.
+* `field_name` (Type): Description of this field and its meaning.
+
+==== Data Instances
+
+Describe what a single record in this dataset represents.
+
+=== Dataset Creation
+
+==== Source Data
+
+Where does the data originate? Include the data source, API, or system that produces it.
+
+==== Data Collection Mechanism
+
+How is the data collected? Describe any pipelines, frequency, or tooling.
+
+==== Personal and Sensitive Information (PII)
+
+* *PII Presence:* Yes / No — describe what PII exists (e.g., names, emails, IDs).
+* *Handling:* How is PII handled, anonymised, or protected?
+
+=== Considerations for Using the Data
+
+==== Social Impact & Biases
+
+* *Known Biases:* Describe any sampling bias, selection bias, or algorithmic bias.
+* *Social Impact:* Are there any ethical or social implications of using this dataset?
+* *Platform / Collection Limitations:* Any known gaps or limitations in coverage.

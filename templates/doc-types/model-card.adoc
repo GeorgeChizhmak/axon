@@ -1,0 +1,43 @@
+== Model Card: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE
+====
+
+=== Model Details
+
+* *Model Name:* TITLE
+* *Model Type:* [e.g., Supervised Classification, Unsupervised Clustering, Regression, LLM]
+* *Developers:* [Team or individual name]
+* *Frameworks:* [e.g., scikit-learn, PyTorch, TensorFlow, HuggingFace]
+* *Model Architecture:*
+  1. [Step 1 — e.g., Feature extraction]
+  2. [Step 2 — e.g., Scaling / normalisation]
+  3. [Step 3 — e.g., Model inference]
+* *Storage & Lineage:* [Where models are tracked and stored — e.g., MLflow + MinIO]
+
+=== Intended Use
+
+* *Primary Use Case:* [What the model is designed to do]
+* *Out-of-Scope Uses:* [Explicitly state what the model should NOT be used for]
+
+=== Training Data
+
+* *Source Data:* [Which dataset(s) the model is trained on — reference data cards if applicable]
+* *Feature Set:* [The input features used for training]
+* *Preprocessing:* [Key data preparation steps — normalisation, imputation, encoding, etc.]
+
+=== Evaluation & Metrics
+
+* *Evaluation Data:* [How the evaluation dataset is constructed — holdout, cross-validation, etc.]
+* *Quantitative Analyses:*
+  - [Metric 1 — e.g., F1-Score: 0.87]
+  - [Metric 2 — e.g., AUC-ROC: 0.92]
+
+=== Ethical Considerations
+
+* *Bias and Fairness:* [Any known fairness concerns — e.g., demographic biases in training data]
+* *Limitations:* [Key limitations of this model and situations where it may fail]
+* *Recommendations:* [Guidance for safe and responsible use of this model]

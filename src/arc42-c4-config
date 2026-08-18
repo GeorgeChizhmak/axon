@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Config for arc42-c4 toolchain.
+# When running from source, paths resolve relative to this script.
+# `make install` rewrites the two ARC42C4_* lines below with absolute paths.
+
+# ARC42C4_BIN_DIR
+arc42c4_bin_dir=$(cd -L "$(dirname "$0")" >/dev/null 2>&1 && pwd -L)
+# ARC42C4_TEMPLATE_DIR
+arc42c4_template_dir="$(cd -L "$(dirname "$0")/../templates" >/dev/null 2>&1 && pwd -L)"
+
+echo "arc42c4_bin_dir=\"${arc42c4_bin_dir}\""
+echo "arc42c4_template_dir=\"${arc42c4_template_dir}\""

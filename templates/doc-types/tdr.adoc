@@ -1,0 +1,24 @@
+== TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE
+====
+
+=== Description
+
+A clear description of the technical risk or area of debt being recorded.
+What is the problem? Where does it live in the system?
+
+=== Impact
+
+Severity (High / Medium / Low), probability, and which components or workflows are affected.
+
+=== Possible Solutions
+
+Proposed mitigations or remediation steps, along with any trade-offs.
+
+=== Owner
+
+Team or individual responsible for tracking and resolving this issue.

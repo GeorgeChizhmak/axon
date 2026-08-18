@@ -1,0 +1,37 @@
+[[section-deployment-view]]
+== Deployment View
+
+// TODO: Describe where and how the system is deployed.
+// Include the C4 Deployment diagram from your workspace.dsl.
+
+=== Infrastructure Overview
+
+// TODO: Describe the target deployment environment(s).
+// Examples: Docker Compose (local), Kubernetes (production), bare metal, cloud.
+
+[options="header", cols="1,2,3"]
+|===
+|Environment | Platform | Purpose
+| Local / Dev   | Docker Compose | Local development and testing
+| Staging       | [Platform]     | Integration testing
+| Production    | [Platform]     | Live system
+|===
+
+=== Deployment Diagram
+
+// TODO: Include the exported C4 Deployment diagram.
+// After running `arc42-c4 generate`, the exported diagram will be in diagrams/.
+
+// Example:
+// image::diagrams/DeploymentDiagram.svg[Deployment Diagram]
+
+=== Infrastructure Components
+
+// TODO: Describe any significant infrastructure components.
+
+[options="header", cols="1,2,3"]
+|===
+|Component | Technology | Role
+| [Component 1] | [Technology] | [Role in the deployment]
+| [Component 2] | [Technology] | [Role in the deployment]
+|===

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Resolves the documentation root directory for the current project.
+# Reads .arc42-c4-dir from the nearest ancestor directory containing it,
+# falling back to "documentation" if no config file is found.
+#
+# Usage: dstdir=$("$arc42c4_bin_dir/_arc42c4_dir")
+
+set -e
+
+# Walk up the directory tree looking for .arc42-c4-dir
+dir="$PWD"
+while [ "$dir" != "/" ]; do
+    if [ -f "$dir/.arc42-c4-dir" ]; then
+        cat "$dir/.arc42-c4-dir"
+        exit 0
+    fi
+    dir="$(dirname "$dir")"
+done
+
+# Fallback: check current directory directly
+if [ -f ".arc42-c4-dir" ]; then
+    cat .arc42-c4-dir
+else
+    echo "documentation"
+fi

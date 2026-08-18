@@ -1,0 +1,37 @@
+[[section-building-block-view]]
+== Building Block View
+
+// TODO: Describe the static decomposition of the system into building blocks
+// (modules, components, subsystems, packages, classes, etc.).
+// Use the C4 Container and Component diagrams from your workspace.dsl.
+
+=== Level 1: System Context
+
+// TODO: Include or reference the C4 System Context diagram.
+// After running `arc42-c4 generate`, the exported PlantUML file will be in diagrams/.
+
+// Example of including an exported Structurizr diagram:
+// image::diagrams/SystemContext.svg[System Context Diagram]
+
+=== Level 2: Container Diagram
+
+// TODO: Include or reference the C4 Container diagram.
+// This shows the major deployable units and their interactions.
+
+// image::diagrams/ContainerDiagram.svg[Container Diagram]
+
+=== Level 3: Component Diagram (optional)
+
+// TODO: If needed, break down individual containers into their internal components.
+// Focus on containers where the internal structure is non-obvious.
+
+=== Key Building Blocks
+
+// TODO: Describe each major building block — its responsibility and interfaces.
+
+[options="header", cols="1,2,3"]
+|===
+|Building Block | Technology | Responsibility
+| [Block 1] | [Technology] | [What it does]
+| [Block 2] | [Technology] | [What it does]
+|===

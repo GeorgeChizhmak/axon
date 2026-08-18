@@ -1,0 +1,43 @@
+[[section-runtime-view]]
+== Runtime View
+
+// TODO: Describe the behaviour of the system at runtime.
+// Show important scenarios and how the building blocks interact to fulfil them.
+// Use sequence diagrams or activity diagrams.
+
+=== Scenario 1: [Name the Primary Happy-Path Scenario]
+
+// TODO: Describe the most important runtime scenario — the common case.
+// Use a PlantUML sequence diagram.
+
+[plantuml, runtime-scenario-1, svg]
+....
+@startuml
+' TODO: Describe the sequence of calls for the primary use case.
+actor "User" as user
+participant "Frontend" as fe
+participant "API Gateway" as api
+participant "Backend Service" as svc
+database "Database" as db
+
+user -> fe: [Initiates action]
+fe -> api: [HTTP request]
+api -> svc: [Internal call]
+svc -> db: [Read/Write]
+db --> svc: [Data]
+svc --> api: [Response]
+api --> fe: [JSON response]
+fe --> user: [UI update]
+@enduml
+....
+
+=== Scenario 2: [Error / Edge Case Scenario]
+
+// TODO: Describe an important error scenario or edge case.
+
+[plantuml, runtime-scenario-2, svg]
+....
+@startuml
+' TODO: Describe the error flow.
+@enduml
+....

@@ -1,0 +1,14 @@
+[[section-architecture-constraints]]
+== Architecture Constraints
+
+// TODO: List any constraints that restrict the architecture decisions.
+// These can be technical, organisational, political, or regulatory.
+// Examples: mandated technologies, budget limits, compliance requirements, team size.
+
+[options="header", cols="1,2,3"]
+|===
+|ID | Constraint | Background / Rationale
+| CON-01 | [Technology constraint]       | [Why this constraint exists]
+| CON-02 | [Organisational constraint]   | [Why this constraint exists]
+| CON-03 | [Regulatory / compliance]     | [Why this constraint exists]
+|===

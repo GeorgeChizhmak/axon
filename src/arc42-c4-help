@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -e
+eval "$($(dirname "$0")/arc42-c4-config)"
+
+## usage: arc42-c4 help [COMMAND]
+##
+## Displays help for arc42-c4 commands.
+## If COMMAND is given, shows detailed help for that specific command.
+##
+## Available commands:
+##   init       Initialise a new documentation workspace
+##   new        Create a new document (adr, tdr, data-card, etc.)
+##   generate   Render HTML and PDF documentation reports
+##   list       List documents of a given type
+##   help       Show this help
+
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+if [ $# -eq 0 ]; then
+    echo ""
+    echo -e "${CYAN}${BOLD}arc42-c4${NC} — Arc42 + C4 Model Documentation Framework"
+    echo ""
+    echo "Usage: arc42-c4 COMMAND [ARGS...]"
+    echo ""
+    echo -e "${BOLD}Commands:${NC}"
+
+    for cmd in "$arc42c4_bin_dir"/arc42-c4-*; do
+        name=$(basename "$cmd" | sed 's/^arc42-c4-//')
+        # Extract the first ## usage: line for a one-liner description
+        usage=$(grep -m1 '^## usage:' "$cmd" 2>/dev/null | sed 's/^## usage: //' || true)
+        if [ -n "$usage" ]; then
+            printf "  %-12s %s\n" "$name" "${usage#*arc42-c4 $name }"
+        else
+            printf "  %-12s\n" "$name"
+        fi
+    done
+
+    echo ""
+    echo "Run 'arc42-c4 help COMMAND' for detailed help on a specific command."
+    echo ""
+else
+    cmd="$arc42c4_bin_dir/arc42-c4-$1"
+    if [ -f "$cmd" ]; then
+        # Print all ## comment lines, stripping the leading "## "
+        grep '^##' "$cmd" | sed 's/^## \{0,1\}//'
+    else
+        echo "Unknown command: $1" >&2
+        exit 1
+    fi
+fi

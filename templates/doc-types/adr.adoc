@@ -1,0 +1,24 @@
+== TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE
+====
+
+=== Context
+
+The issue motivating this decision, and any context that influences or constrains it.
+
+=== Decision
+
+The change that we are proposing or have agreed to implement.
+
+=== Rationale
+
+Why this option was preferred over the alternatives considered.
+
+=== Consequences
+
+What becomes easier or more difficult to do as a result of this decision.
+Any risks introduced that will need to be mitigated.

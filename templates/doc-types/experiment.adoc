@@ -1,0 +1,81 @@
+== Experiment: TITLE
+
+[NOTE]
+====
+*Status:* `ACTIVE` +
+*ID:* EXP-NUMBER +
+*Date Started:* DATE +
+*Date Concluded:* —
+====
+
+=== Hypothesis
+
+What do we believe to be true? What are we trying to validate or disprove?
+State this as a clear, testable hypothesis.
+
+_"We believe that [approach] will [outcome] for [users/system], because [rationale]."_
+
+=== Motivation
+
+Why is this experiment worth running? What problem or question does it address?
+Link to any related TDRs, ADRs, or quality scenarios.
+
+=== Setup
+
+==== Approach
+
+Describe what is being tested and how. Include:
+
+* Technology, library, or architectural pattern under evaluation
+* Scope of the experiment (which components or services are affected)
+* Duration or stopping criteria
+
+==== Configuration
+
+[source,yaml]
+----
+# TODO: Record any relevant configuration, parameters, or flags used
+# in this experiment.
+----
+
+==== Success Criteria
+
+Define what "success" looks like in measurable terms:
+
+* [ ] Criterion 1: [e.g., p99 latency < 100ms under 1000 RPS]
+* [ ] Criterion 2: [e.g., Memory usage does not increase by more than 10%]
+* [ ] Criterion 3: [e.g., All existing integration tests pass]
+
+=== Results
+
+// TODO: Fill in after the experiment concludes.
+
+==== Observations
+
+Describe what was observed during the experiment. Include metrics, logs, or
+other evidence collected.
+
+[options="header", cols="1,1,1"]
+|===
+|Metric | Baseline | Experiment
+| [Metric 1] | [Value] | [Value]
+| [Metric 2] | [Value] | [Value]
+|===
+
+==== Findings
+
+What did the data tell us? Did the results match the hypothesis?
+
+=== Conclusion
+
+// TODO: Fill in after the experiment concludes. Update Status to one of:
+// SUCCEEDED, FAILED, INCONCLUSIVE, PROMOTED-TO-ADR, ABANDONED
+
+*Outcome:* [SUCCEEDED / FAILED / INCONCLUSIVE]
+
+* *Decision*: [What was decided as a result of this experiment?]
+* *Next Steps*: [e.g., promote to ADR, run a follow-up experiment, abandon the approach]
+
+=== References
+
+* [Link to related TDR, spike branch, PR, benchmark tool, etc.]

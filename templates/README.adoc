@@ -1,0 +1,92 @@
+= PROJECT_NAME
+AUTHOR
+
+A brief one-line description of what PROJECT_NAME does and why it exists.
+
+== 📚 Documentation Hub
+
+All comprehensive documentation is maintained in the `documentation/` directory,
+following the link:https://arc42.org[Arc42] architecture documentation standard
+and the link:https://c4model.com[C4 Model] for visual architecture diagrams.
+
+=== Arc42 Architecture Documentation
+
+* 📄 link:documentation/PROJECT_SLUG_architecture.html[Architecture Report (HTML)]
+* 📄 link:documentation/PROJECT_SLUG_architecture.pdf[Architecture Report (PDF)]
+* 📁 link:documentation/arc42/[Arc42 Source Files]
+
+=== Architecture Decision Records (ADRs)
+
+* 📁 link:documentation/adrs/[ADRs] — Significant architectural decisions
+
+=== Technical Debt & Risk Records (TDRs)
+
+* 📁 link:documentation/tdrs/[TDRs] — Known technical risks and debt
+
+=== Other Documentation
+
+* 📁 link:documentation/data-cards/[Data Cards] — Dataset documentation
+* 📁 link:documentation/model-cards/[Model Cards] — ML model documentation
+* 📁 link:documentation/runbooks/[Runbooks] — Operational procedures
+* 📁 link:documentation/guidelines/[Guidelines] — Coding and design standards
+
+---
+
+== 🚀 Getting Started
+
+=== Prerequisites
+
+* [List key prerequisites here]
+
+=== Installation
+
+[source,bash]
+----
+# TODO: Add installation / setup commands
+----
+
+=== Building Architecture Documentation
+
+Whenever you change the C4 model, AsciiDoc chapters, ADRs, or TDRs, rebuild the docs:
+
+[source,bash]
+----
+arc42-c4 generate
+----
+
+This exports the Structurizr DSL to PlantUML, cleans stale diagram caches,
+and renders the final HTML and PDF reports.
+
+=== Adding New Documents
+
+[source,bash]
+----
+# Add an Architecture Decision Record
+arc42-c4 new adr "Use PostgreSQL as the operational database"
+
+# Add a Technical Debt Record
+arc42-c4 new tdr "Retry logic missing in payment service"
+
+# Add a Data Card
+arc42-c4 new data-card "Raw Events Dataset"
+
+# Add a Model Card
+arc42-c4 new model-card "Fraud Detection Classifier"
+
+# Add a Runbook
+arc42-c4 new runbook "Deploy to Production"
+
+# Add a Guideline
+arc42-c4 new guideline "REST API Design Standards"
+----
+
+---
+
+== 🏛️ High-Level Architecture
+
+// TODO: Add a brief description of the system's architecture.
+// Reference the C4 Container diagram once it is generated.
+
+---
+
+_For full guidelines and documentation, see the `documentation/` directory._

@@ -1,0 +1,43 @@
+[[section-introduction-and-goals]]
+== Introduction and Goals
+
+// TODO: Provide a brief description of what PROJECT_NAME does and why it exists.
+// - What is the system's purpose?
+// - What problem does it solve?
+// - Who are the key stakeholders?
+
+PROJECT_NAME is a [brief description of the system and its purpose].
+
+=== Requirements Overview
+
+// TODO: List the key functional requirements or business goals.
+// Keep this concise — 5-10 bullet points maximum.
+
+* *[Requirement 1]*: Description.
+* *[Requirement 2]*: Description.
+* *[Requirement 3]*: Description.
+
+=== Quality Goals
+
+// TODO: List the top 3–5 quality attributes most important to stakeholders.
+// Common examples: performance, reliability, maintainability, security, scalability.
+
+[options="header", cols="1,3"]
+|===
+|Quality Attribute | Goal
+| Performance       | [Describe target performance characteristics]
+| Reliability       | [Describe fault tolerance or availability requirements]
+| Maintainability   | [Describe what makes the system easy to change]
+| Security          | [Describe key security requirements]
+|===
+
+=== Stakeholders
+
+// TODO: List all stakeholders, their roles, and their expectations of the system.
+
+[options="header", cols="1,2,2"]
+|===
+|Role / Name | Contact | Expectations
+| [Role 1]   | [N/A]   | [What they expect from the system]
+| [Role 2]   | [N/A]   | [What they expect from the system]
+|===

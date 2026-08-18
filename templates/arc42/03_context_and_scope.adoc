@@ -1,0 +1,34 @@
+[[section-system-scope-and-context]]
+== Context and Scope
+
+// TODO: Describe what is inside the system boundary (PROJECT_NAME) and what is outside it.
+// Identify all external systems, users, and data flows.
+// Include a C4 System Context diagram rendered from workspace.dsl.
+
+=== Business Context
+
+// TODO: Describe the business-level context: stakeholders, external systems, and key interactions.
+
+[plantuml, business-context, svg]
+....
+@startuml
+!include <C4Context>
+' TODO: Replace this with your actual system context.
+' Or use the Structurizr export: diagrams/SystemContext.puml
+Person(user, "User", "Primary actor")
+System(system, "PROJECT_NAME", "The system under description")
+Rel(user, system, "Uses")
+@enduml
+....
+
+=== Technical Context
+
+// TODO: Describe the technical interfaces between PROJECT_NAME and external systems.
+// Include protocols, data formats, and communication channels.
+
+[options="header", cols="1,2,3"]
+|===
+|Interface | Direction | Description
+| [Interface 1] | Inbound  | [What data is received and from whom]
+| [Interface 2] | Outbound | [What data is sent and to whom]
+|===

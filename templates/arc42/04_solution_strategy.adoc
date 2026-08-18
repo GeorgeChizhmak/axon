@@ -1,0 +1,34 @@
+[[section-solution-strategy]]
+== Solution Strategy
+
+// TODO: Summarise the key decisions and strategies that shape the overall architecture.
+// This section bridges requirements and constraints with the actual architectural decisions.
+// Keep it concise — this is a high-level summary, not a detailed design.
+
+=== Technology Decisions
+
+// TODO: List the core technology choices and why they were made.
+
+[options="header", cols="1,2,3"]
+|===
+|Decision | Technology / Approach | Rationale
+| [Backend API]     | [Technology] | [Why this was chosen]
+| [Data Storage]    | [Technology] | [Why this was chosen]
+| [Messaging]       | [Technology] | [Why this was chosen]
+| [Frontend]        | [Technology] | [Why this was chosen]
+|===
+
+=== Architectural Patterns
+
+// TODO: List the key architectural patterns or styles used.
+
+* *[Pattern 1]*: [Brief description of how and why this pattern is used]
+* *[Pattern 2]*: [Brief description of how and why this pattern is used]
+
+=== Quality Attribute Strategies
+
+// TODO: Describe concrete approaches taken to achieve the top quality attributes from Section 1.
+
+* *Performance*: [How is performance achieved? e.g., caching, async processing, horizontal scaling]
+* *Reliability*: [How is reliability achieved? e.g., retry queues, circuit breakers, redundancy]
+* *Maintainability*: [How is maintainability achieved? e.g., clean architecture, modular design]

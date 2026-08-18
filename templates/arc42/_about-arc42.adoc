@@ -1,0 +1,10 @@
+// About arc42
+// ===========
+// arc42, the template for documentation of software and system architecture.
+//
+// Documentation may be freely used, modified and distributed as a result
+// of the Creative Commons Attribution-ShareAlike 4.0 license.
+//
+// More information at https://arc42.org
+//
+// Author: Gernot Starke

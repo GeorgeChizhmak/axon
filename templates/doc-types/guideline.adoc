@@ -1,0 +1,49 @@
+== Guideline: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE
+====
+
+=== Overview
+
+A brief description of what this guideline covers and which teams or codebases it applies to.
+
+=== Rationale
+
+Why does this guideline exist? What problem does it prevent?
+
+=== Rules
+
+The following rules MUST (or SHOULD) be followed:
+
+. *[Rule 1 — short imperative title]*: [Explanation. Why this rule matters.]
+. *[Rule 2 — short imperative title]*: [Explanation. Why this rule matters.]
+. *[Rule 3 — short imperative title]*: [Explanation. Why this rule matters.]
+
+=== Examples
+
+==== ✅ Do
+
+[source,python]
+----
+# TODO: Add a positive example showing correct application of this guideline.
+----
+
+==== ❌ Don't
+
+[source,python]
+----
+# TODO: Add a negative example showing what to avoid.
+----
+
+=== Exceptions
+
+Describe any legitimate scenarios where this guideline may be intentionally violated,
+and the process for documenting such exceptions (e.g., an ADR, a code comment).
+
+=== References
+
+* [Link to related standards or external documentation]
+* [Related ADR or guideline]
