@@ -1,6 +1,6 @@
-# axon
+# 🧠 axon
 
-Engineering Workspace Ecosystem connecting blueprints, science, and execution — a portable, `adr-tools`-style Bash CLI for initialising and managing **Arc42 + C4 Model** architecture documentation workspaces using AsciiDoc.
+An ultra-portable, dependency-free Bash CLI that serves as the central nervous system for your engineering workspace. It unifies **Software Architecture (Arc42 + C4)**, **Scientific R&D Logs**, and **Agile Day-to-Day Tasks** into a single, version-controlled git directory using AsciiDoc.
 
 Inspired by [`adr-tools`](https://github.com/npryce/adr-tools).
 
@@ -240,3 +240,11 @@ Tests run entirely in a temp directory — no Docker required.
 - [C4 Model](https://c4model.com) by Simon Brown
 - [adr-tools](https://github.com/npryce/adr-tools) by Nat Pryce (GPL-3.0)
 - [Structurizr](https://structurizr.com) by Simon Brown
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for details.
+
+Copyright (c) 2026 George Chizhmak
