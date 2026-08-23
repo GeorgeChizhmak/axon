@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+eval "$($(dirname "$0")/axon-config)"
+
+## usage: axon version
+##
+## Prints the axon version string and authorship.
+
+echo "axon ${axon_version} — George Chizhmak, 2026"

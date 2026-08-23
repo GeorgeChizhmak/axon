@@ -2,7 +2,11 @@
 
 Engineering Workspace Ecosystem connecting blueprints, science, and execution — a portable, `adr-tools`-style Bash CLI for initialising and managing **Arc42 + C4 Model** architecture documentation workspaces using AsciiDoc.
 
-Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documentation conventions of [emonito](https://github.com/SentimentGroup/emonito).
+Inspired by [`adr-tools`](https://github.com/npryce/adr-tools).
+
+## Why Axon?
+
+Architecture docs, task boards, and experiment notebooks usually live in separate tools and drift apart. Axon treats them as one nervous system: decisions, work, and evidence stay linked in a single AsciiDoc workspace you own. Blueprints guide execution, science validates choices, and the trail stays in git—not locked in a SaaS silo.
 
 ---
 
@@ -141,6 +145,7 @@ axon list
 | `axon generate [--html\|--pdf\|--skip-dsl]` | Build HTML and PDF |
 | `axon list [type] [--board]` | List documents |
 | `axon promote <experiment-num> [-t TITLE]` | Promote experiment to ADR |
+| `axon version` / `axon --version` | Print version and authorship |
 | `axon help [command]` | Show help |
 
 Run `axon help <command>` for detailed options.

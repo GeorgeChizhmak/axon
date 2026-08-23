@@ -1,3 +1,5 @@
+// Generated with axon — George Chizhmak, 2026
+// https://github.com/GeorgeChizhmak/axon
 // configure EN settings for asciidoc
 include::arc42/_config.adoc[]
 :doctype: book
@@ -73,3 +75,7 @@ include::arc42/12_glossary.adoc[]
 <<<<
 // 13. Appendix
 include::arc42/13_appendix.adoc[]
+
+<<<<
+[.text-center]
+_Documentation workspace managed with https://github.com/GeorgeChizhmak/axon[axon] — George Chizhmak, 2026._

@@ -12,6 +12,8 @@ eval "$($(dirname "$0")/axon-config)"
 ##   new        Create a new document (adr, tdr, data-card, etc.)
 ##   generate   Render HTML and PDF documentation reports
 ##   list       List documents of a given type
+##   promote    Promote a successful experiment to an ADR
+##   version    Print version and authorship
 ##   help       Show this help
 
 CYAN='\033[0;36m'

@@ -15,6 +15,7 @@ install:
 	cp templates/workspace.dsl  $(DATADIR)/templates/
 	cp templates/main.adoc      $(DATADIR)/templates/
 	cp templates/README.adoc    $(DATADIR)/templates/
+	cp VERSION                  $(DATADIR)/
 	@for f in $(SCRIPTS); do \
 	    echo "  Installing $$(basename $$f)"; \
 	    install -m 755 $$f $(BINDIR)/$$(basename $$f); \

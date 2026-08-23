@@ -49,13 +49,27 @@ echo "$output" | grep -q "init"     && pass "help lists 'init'"    || fail "help
 echo "$output" | grep -q "new"      && pass "help lists 'new'"     || fail "help missing 'new'"
 echo "$output" | grep -q "generate" && pass "help lists 'generate'"|| fail "help missing 'generate'"
 echo "$output" | grep -q "list"     && pass "help lists 'list'"    || fail "help missing 'list'"
+echo "$output" | grep -q "version"  && pass "help lists 'version'" || fail "help missing 'version'"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 1b: axon version
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 1b: axon version ]"
+version_out=$("$BIN" version 2>&1)
+assert_output "$version_out" "axon 0\.1\.0"
+assert_output "$version_out" "George Chizhmak"
+assert_output "$version_out" "2026"
+flag_version_out=$("$BIN" --version 2>&1)
+assert_output "$flag_version_out" "George Chizhmak"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST 2: axon init
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "[ Test 2: axon init ]"
-VISUAL=true "$BIN" init documentation -n "Test Project" -a "Tester <test@example.com>" >/dev/null 2>&1
+init_out=$(VISUAL=true "$BIN" init documentation -n "Test Project" -a "Tester <test@example.com>" 2>&1)
+assert_output "$init_out" "George Chizhmak"
 
 assert_exists ".axon-dir"
 assert_exists "README.adoc"
@@ -83,6 +97,8 @@ ADR_1=$(find documentation/adrs -name "0001-*.adoc" | head -1)
 # Placeholders should be substituted
 assert_contains "README.adoc" "Test Project"
 assert_contains "documentation/workspace.dsl" "Test Project"
+assert_contains "documentation/test-project.adoc" "George Chizhmak"
+assert_contains "documentation/test-project.adoc" "Generated with axon"
 
 # Re-init should be blocked (run from the TESTDIR where .axon-dir exists)
 reinit_out=$("$BIN" init documentation -n "Second" 2>&1 | sed 's/\x1b\[[0-9;]*m//g' || true)

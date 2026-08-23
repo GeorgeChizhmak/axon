@@ -14,9 +14,18 @@ eval "$($(dirname "$0")/axon-config)"
 ##   generate   Render HTML and PDF documentation reports
 ##   list       List documents of a given type
 ##   promote    Promote a successful experiment to an ADR
+##   version    Print version and authorship
 ##   help       Show help for a command
 ##
 ## Run 'axon help COMMAND' for help on a specific command.
+## Run 'axon --version' (or 'axon -V') for a short version string.
+
+case "${1:-}" in
+    --version|-V)
+        "$axon_bin_dir/axon-version"
+        exit 0
+        ;;
+esac
 
 cmd="$axon_bin_dir/axon-$1"
 

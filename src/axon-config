@@ -7,6 +7,9 @@
 axon_bin_dir=$(cd -L "$(dirname "$0")" >/dev/null 2>&1 && pwd -L)
 # AXON_TEMPLATE_DIR
 axon_template_dir="$(cd -L "$(dirname "$0")/../templates" >/dev/null 2>&1 && pwd -L)"
+# AXON_VERSION — reads VERSION next to templates/ (repo root from source, DATADIR when installed)
+axon_version="$(tr -d '[:space:]' < "${axon_template_dir}/../VERSION" 2>/dev/null || echo "0.1.0")"
 
 echo "axon_bin_dir=\"${axon_bin_dir}\""
 echo "axon_template_dir=\"${axon_template_dir}\""
+echo "axon_version=\"${axon_version}\""
