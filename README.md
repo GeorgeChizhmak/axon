@@ -1,6 +1,6 @@
-# arc42-c4
+# axon
 
-A portable, `adr-tools`-style Bash CLI for initialising and managing **Arc42 + C4 Model** architecture documentation workspaces using AsciiDoc.
+Engineering Workspace Ecosystem connecting blueprints, science, and execution — a portable, `adr-tools`-style Bash CLI for initialising and managing **Arc42 + C4 Model** architecture documentation workspaces using AsciiDoc.
 
 Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documentation conventions of [emonito](https://github.com/SentimentGroup/emonito).
 
@@ -8,10 +8,10 @@ Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documenta
 
 ## Features
 
-- **`arc42-c4 init`** — Scaffolds a complete Arc42 + C4 workspace in seconds: all 13 section files, `workspace.dsl`, subdirectories, `README.adoc`, and ADR #0001
-- **`arc42-c4 new`** — Adds any document type with auto-numbering, slug generation, and (for ADRs/TDRs) automatic injection into the Arc42 aggregator section
-- **`arc42-c4 generate`** — Builds HTML and PDF reports; exports Structurizr DSL → PlantUML via Docker
-- **`arc42-c4 list`** — Lists documents with status from NOTE blocks; tasks support a `--board` Kanban view
+- **`axon init`** — Scaffolds a complete Arc42 + C4 workspace in seconds: all 13 section files, `workspace.dsl`, subdirectories, `README.adoc`, and ADR #0001
+- **`axon new`** — Adds any document type with auto-numbering, slug generation, and (for ADRs/TDRs) automatic injection into the Arc42 aggregator section
+- **`axon generate`** — Builds HTML and PDF reports; exports Structurizr DSL → PlantUML via Docker
+- **`axon list`** — Lists documents with status from NOTE blocks; tasks support a `--board` Kanban view
 
 **Supported document types:**
 
@@ -28,7 +28,7 @@ Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documenta
 | `runbook` | `runbooks/` | Operational runbooks |
 | `guideline` | `guidelines/` | Coding & design guidelines |
 
-**Task Classes** (set with `-c CLASS` on `arc42-c4 new task`):
+**Task Classes** (set with `-c CLASS` on `axon new task`):
 
 | Class | Category | Description |
 |---|---|---|
@@ -51,8 +51,8 @@ Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documenta
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourorg/arc42-c4.git
-cd arc42-c4
+git clone https://github.com/GeorgeChizhmak/axon.git
+cd axon
 
 # Install system-wide (default: /usr/local/bin)
 sudo make install
@@ -65,7 +65,7 @@ make install PREFIX=~/.local
 
 ```bash
 gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
-# Docker must be running for `arc42-c4 generate` (DSL export step)
+# Docker must be running for `axon generate` (DSL export step)
 ```
 
 ### Uninstall
@@ -80,54 +80,54 @@ sudo make uninstall
 
 ```bash
 # In your project directory:
-arc42-c4 init documentation -n "Order Service" -a "Jane Doe <jane@acme.com>"
+axon init documentation -n "Order Service" -a "Jane Doe <jane@acme.com>"
 
 # Add an Architecture Decision Record
-arc42-c4 new adr "Use PostgreSQL as the operational database"
+axon new adr "Use PostgreSQL as the operational database"
 
 # Add a Technical Debt/Risk Record
-arc42-c4 new tdr "No retry logic in payment processor"
+axon new tdr "No retry logic in payment processor"
 
 # Add a project epic (with Gantt timeline template)
-arc42-c4 new epic "Migrate to event-driven architecture"
+axon new epic "Migrate to event-driven architecture"
 
 # Add tasks to the board (standard and scientific classes)
-arc42-c4 new task -c FEAT "Add OAuth2 login flow"
-arc42-c4 new task -c BUG "Memory leak in NLP worker"
-arc42-c4 new task -c HYPO "Validate caching latency improvement"
+axon new task -c FEAT "Add OAuth2 login flow"
+axon new task -c BUG "Memory leak in NLP worker"
+axon new task -c HYPO "Validate caching latency improvement"
 
 # View tasks as a Kanban board (grouped by status)
-arc42-c4 list task --board
+axon list task --board
 
 # Add a meeting log (agenda + minutes)
-arc42-c4 new meeting "Sprint 12 Planning"
+axon new meeting "Sprint 12 Planning"
 
 # Add a scientific experiment
-arc42-c4 new experiment "Redis vs Memcached for session storage"
+axon new experiment "Redis vs Memcached for session storage"
 
 # Add a scientific experiment with a Jupyter notebook companion
-arc42-c4 new experiment --notebook "Transformer fine-tuning benchmark"
+axon new experiment --notebook "Transformer fine-tuning benchmark"
 
 # Add other document types
-arc42-c4 new data-card "Raw Order Events"
+axon new data-card "Raw Order Events"
 
 # Add a Model Card
-arc42-c4 new model-card "Fraud Detection Classifier"
+axon new model-card "Fraud Detection Classifier"
 
 # Add a Runbook
-arc42-c4 new runbook "Deploy to Kubernetes Production"
+axon new runbook "Deploy to Kubernetes Production"
 
 # Add a Coding/Design Guideline
-arc42-c4 new guideline "REST API Design Standards"
+axon new guideline "REST API Design Standards"
 
 # Build HTML + PDF reports
-arc42-c4 generate
+axon generate
 
 # List all ADRs with status
-arc42-c4 list adr
+axon list adr
 
 # List all document types and counts
-arc42-c4 list
+axon list
 ```
 
 ---
@@ -136,23 +136,24 @@ arc42-c4 list
 
 | Command | Description |
 |---|---|
-| `arc42-c4 init [DIR] [-n NAME] [-a AUTHOR]` | Initialise workspace |
-| `arc42-c4 new <type> <title..> [-s NUM] [-c CLASS] [--notebook]` | Create a new document |
-| `arc42-c4 generate [--html\|--pdf\|--skip-dsl]` | Build HTML and PDF |
-| `arc42-c4 list [type] [--board]` | List documents |
-| `arc42-c4 help [command]` | Show help |
+| `axon init [DIR] [-n NAME] [-a AUTHOR]` | Initialise workspace |
+| `axon new <type> <title..> [-s NUM] [-c CLASS] [--notebook]` | Create a new document |
+| `axon generate [--html\|--pdf\|--skip-dsl]` | Build HTML and PDF |
+| `axon list [type] [--board]` | List documents |
+| `axon promote <experiment-num> [-t TITLE]` | Promote experiment to ADR |
+| `axon help [command]` | Show help |
 
-Run `arc42-c4 help <command>` for detailed options.
+Run `axon help <command>` for detailed options.
 
 ---
 
 ## Workspace Structure
 
-After running `arc42-c4 init`, your project will contain:
+After running `axon init`, your project will contain:
 
 ```
 your-project/
-├── .arc42-c4-dir              # Points to documentation root
+├── .axon-dir                  # Points to documentation root
 ├── README.adoc                # Project README
 └── documentation/
     ├── <project>.adoc         # Master AsciiDoc aggregator (rendered to HTML+PDF)
@@ -185,8 +186,8 @@ To override a built-in template for your project, create a `templates/` director
 
 ```bash
 mkdir -p documentation/templates
-cp /usr/local/share/arc42-c4/templates/doc-types/adr.adoc documentation/templates/adr.adoc
-# Edit as needed — arc42-c4 will prefer this over the built-in template
+cp /usr/local/share/axon/templates/doc-types/adr.adoc documentation/templates/adr.adoc
+# Edit as needed — axon will prefer this over the built-in template
 ```
 
 ---
@@ -195,16 +196,16 @@ cp /usr/local/share/arc42-c4/templates/doc-types/adr.adoc documentation/template
 
 ```bash
 # Full build (requires Docker for DSL export)
-arc42-c4 generate
+axon generate
 
 # HTML only, skip DSL export (no Docker needed)
-arc42-c4 generate --html --skip-dsl
+axon generate --html --skip-dsl
 
 # PDF only
-arc42-c4 generate --pdf
+axon generate --pdf
 
 # Skip cleaning stale SVG caches
-arc42-c4 generate --skip-clean
+axon generate --skip-clean
 ```
 
 ---

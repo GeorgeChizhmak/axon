@@ -51,7 +51,7 @@ Whenever you change the C4 model, AsciiDoc chapters, ADRs, or TDRs, rebuild the 
 
 [source,bash]
 ----
-arc42-c4 generate
+axon generate
 ----
 
 This exports the Structurizr DSL to PlantUML, cleans stale diagram caches,
@@ -62,22 +62,22 @@ and renders the final HTML and PDF reports.
 [source,bash]
 ----
 # Add an Architecture Decision Record
-arc42-c4 new adr "Use PostgreSQL as the operational database"
+axon new adr "Use PostgreSQL as the operational database"
 
 # Add a Technical Debt Record
-arc42-c4 new tdr "Retry logic missing in payment service"
+axon new tdr "Retry logic missing in payment service"
 
 # Add a Data Card
-arc42-c4 new data-card "Raw Events Dataset"
+axon new data-card "Raw Events Dataset"
 
 # Add a Model Card
-arc42-c4 new model-card "Fraud Detection Classifier"
+axon new model-card "Fraud Detection Classifier"
 
 # Add a Runbook
-arc42-c4 new runbook "Deploy to Production"
+axon new runbook "Deploy to Production"
 
 # Add a Guideline
-arc42-c4 new guideline "REST API Design Standards"
+axon new guideline "REST API Design Standards"
 ----
 
 ---

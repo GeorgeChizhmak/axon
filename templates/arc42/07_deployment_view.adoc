@@ -20,7 +20,7 @@
 === Deployment Diagram
 
 // TODO: Include the exported C4 Deployment diagram.
-// After running `arc42-c4 generate`, the exported diagram will be in diagrams/.
+// After running `axon generate`, the exported diagram will be in diagrams/.
 
 // Example:
 // image::diagrams/DeploymentDiagram.svg[Deployment Diagram]

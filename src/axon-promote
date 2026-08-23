@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-eval "$($(dirname "$0")/arc42-c4-config)"
+eval "$($(dirname "$0")/axon-config)"
 
-## usage: arc42-c4 promote <EXPERIMENT_NUM> [-t "ADR Title Override"]
+## usage: axon promote <EXPERIMENT_NUM> [-t "ADR Title Override"]
 ##
 ## Promotes a successful experiment to a new Architecture Decision Record.
 ## This command:
@@ -21,8 +21,8 @@ eval "$($(dirname "$0")/arc42-c4-config)"
 ##   -t TITLE   Override the ADR title (default: experiment title is reused)
 ##
 ## Examples:
-##   arc42-c4 promote 3
-##   arc42-c4 promote 3 -t "Adopt Redis for Session Caching"
+##   axon promote 3
+##   axon promote 3 -t "Adopt Redis for Session Caching"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -30,15 +30,15 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-info()    { echo -e "${CYAN}[arc42-c4]${NC} $*"; }
-success() { echo -e "${GREEN}[arc42-c4] ✓${NC} $*"; }
-warn()    { echo -e "${YELLOW}[arc42-c4] ⚠${NC} $*"; }
-error()   { echo -e "${RED}[arc42-c4] ✗${NC} $*" >&2; }
+info()    { echo -e "${CYAN}[axon]${NC} $*"; }
+success() { echo -e "${GREEN}[axon] ✓${NC} $*"; }
+warn()    { echo -e "${YELLOW}[axon] ⚠${NC} $*"; }
+error()   { echo -e "${RED}[axon] ✗${NC} $*" >&2; }
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
 if [ $# -eq 0 ]; then
     error "No experiment number given."
-    echo "Usage: arc42-c4 promote <EXPERIMENT_NUM> [-t \"ADR Title\"]" >&2
+    echo "Usage: axon promote <EXPERIMENT_NUM> [-t \"ADR Title\"]" >&2
     exit 1
 fi
 
@@ -54,13 +54,13 @@ while getopts "t:" opt; do
 done
 
 # ── Resolve docs root ─────────────────────────────────────────────────────────
-DOCS_DIR="$("$arc42c4_bin_dir/_arc42c4_dir")"
+DOCS_DIR="$("$axon_bin_dir/_axon_dir")"
 EXP_ID=$(printf "%04d" "$EXP_NUM")
 EXP_FILE=$(ls "$DOCS_DIR/experiments/${EXP_ID}-"*.adoc 2>/dev/null | head -1)
 
 if [ -z "$EXP_FILE" ]; then
     error "Experiment #${EXP_NUM} not found in $DOCS_DIR/experiments/"
-    echo "Run 'arc42-c4 list experiment' to see available experiments." >&2
+    echo "Run 'axon list experiment' to see available experiments." >&2
     exit 1
 fi
 
@@ -111,7 +111,7 @@ fi
 ADR_ID=$(printf "%04d" "$ADR_NUM")
 ADR_SLUG=$(echo -n "$ADR_TITLE" | tr -Ccs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
 ADR_FILE="$ADR_DIR/${ADR_ID}-${ADR_SLUG}.adoc"
-DATE="${ARC42C4_DATE:-$(date +%Y-%m-%d)}"
+DATE="${AXON_DATE:-$(date +%Y-%m-%d)}"
 
 # ── Build the pre-filled ADR ──────────────────────────────────────────────────
 cat > "$ADR_FILE" <<ADOC

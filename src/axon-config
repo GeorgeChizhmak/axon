@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Config for axon toolchain.
+# When running from source, paths resolve relative to this script.
+# `make install` rewrites the two AXON_* lines below with absolute paths.
+
+# AXON_BIN_DIR
+axon_bin_dir=$(cd -L "$(dirname "$0")" >/dev/null 2>&1 && pwd -L)
+# AXON_TEMPLATE_DIR
+axon_template_dir="$(cd -L "$(dirname "$0")/../templates" >/dev/null 2>&1 && pwd -L)"
+
+echo "axon_bin_dir=\"${axon_bin_dir}\""
+echo "axon_template_dir=\"${axon_template_dir}\""

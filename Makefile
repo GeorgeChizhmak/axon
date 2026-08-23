@@ -1,13 +1,13 @@
 PREFIX  ?= /usr/local
 BINDIR   = $(PREFIX)/bin
-DATADIR  = $(PREFIX)/share/arc42-c4
+DATADIR  = $(PREFIX)/share/axon
 
-SCRIPTS  = $(wildcard src/arc42-c4 src/arc42-c4-* src/_arc42c4_dir)
+SCRIPTS  = $(wildcard src/axon src/axon-* src/_axon_dir)
 
 .PHONY: install uninstall test
 
 install:
-	@echo "[arc42-c4] Installing to $(BINDIR) and $(DATADIR)"
+	@echo "[axon] Installing to $(BINDIR) and $(DATADIR)"
 	install -d $(DATADIR)/templates/arc42
 	install -d $(DATADIR)/templates/doc-types
 	cp -r templates/arc42/*     $(DATADIR)/templates/arc42/
@@ -19,19 +19,19 @@ install:
 	    echo "  Installing $$(basename $$f)"; \
 	    install -m 755 $$f $(BINDIR)/$$(basename $$f); \
 	done
-	@# Rewrite the config script: replace the lines after the ARC42C4_* markers
+	@# Rewrite the config script: replace the lines after the AXON_* markers
 	@# with hardcoded absolute paths so the installed tool is self-contained.
 	perl -i -pe \
-	    's|^arc42c4_bin_dir=.*$$|arc42c4_bin_dir="$(BINDIR)"|; \
-	     s|^arc42c4_template_dir=.*$$|arc42c4_template_dir="$(DATADIR)/templates"|' \
-	    $(BINDIR)/arc42-c4-config
-	@echo "[arc42-c4] ✓ Installation complete. Run 'arc42-c4 help' to get started."
+	    's|^axon_bin_dir=.*$$|axon_bin_dir="$(BINDIR)"|; \
+	     s|^axon_template_dir=.*$$|axon_template_dir="$(DATADIR)/templates"|' \
+	    $(BINDIR)/axon-config
+	@echo "[axon] ✓ Installation complete. Run 'axon help' to get started."
 
 uninstall:
-	@echo "[arc42-c4] Removing installed files..."
-	rm -f $(BINDIR)/arc42-c4 $(BINDIR)/arc42-c4-* $(BINDIR)/_arc42c4_dir
+	@echo "[axon] Removing installed files..."
+	rm -f $(BINDIR)/axon $(BINDIR)/axon-* $(BINDIR)/_axon_dir
 	rm -rf $(DATADIR)
-	@echo "[arc42-c4] ✓ Uninstalled."
+	@echo "[axon] ✓ Uninstalled."
 
 test:
 	@bash tests/run_tests.sh

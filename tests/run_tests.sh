@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# tests/run_tests.sh — Automated test suite for arc42-c4
+# tests/run_tests.sh — Automated test suite for axon
 #
 # Runs entirely in a temp directory. Does NOT require Docker.
 # Run from the repository root: bash tests/run_tests.sh
@@ -10,7 +10,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-BIN="$REPO_ROOT/src/arc42-c4"
+BIN="$REPO_ROOT/src/axon"
 
 # Colours
 RED='\033[0;31m'
@@ -35,29 +35,29 @@ cd "$TESTDIR"
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════${NC}"
-echo -e "${CYAN}   arc42-c4 Test Suite                 ${NC}"
+echo -e "${CYAN}   axon Test Suite                     ${NC}"
 echo -e "${CYAN}═══════════════════════════════════════${NC}"
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 1: arc42-c4 help
+# TEST 1: axon help
 # ─────────────────────────────────────────────────────────────────────────────
-echo "[ Test 1: arc42-c4 help ]"
+echo "[ Test 1: axon help ]"
 output=$("$BIN" help 2>&1)
-echo "$output" | grep -q "arc42-c4" && pass "help shows tool name" || fail "help missing tool name"
+echo "$output" | grep -q "axon" && pass "help shows tool name" || fail "help missing tool name"
 echo "$output" | grep -q "init"     && pass "help lists 'init'"    || fail "help missing 'init'"
 echo "$output" | grep -q "new"      && pass "help lists 'new'"     || fail "help missing 'new'"
 echo "$output" | grep -q "generate" && pass "help lists 'generate'"|| fail "help missing 'generate'"
 echo "$output" | grep -q "list"     && pass "help lists 'list'"    || fail "help missing 'list'"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 2: arc42-c4 init
+# TEST 2: axon init
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 2: arc42-c4 init ]"
+echo "[ Test 2: axon init ]"
 VISUAL=true "$BIN" init documentation -n "Test Project" -a "Tester <test@example.com>" >/dev/null 2>&1
 
-assert_exists ".arc42-c4-dir"
+assert_exists ".axon-dir"
 assert_exists "README.adoc"
 assert_exists "documentation/workspace.dsl"
 assert_exists "documentation/arc42/_config.adoc"
@@ -84,17 +84,17 @@ ADR_1=$(find documentation/adrs -name "0001-*.adoc" | head -1)
 assert_contains "README.adoc" "Test Project"
 assert_contains "documentation/workspace.dsl" "Test Project"
 
-# Re-init should be blocked (run from the TESTDIR where .arc42-c4-dir exists)
+# Re-init should be blocked (run from the TESTDIR where .axon-dir exists)
 reinit_out=$("$BIN" init documentation -n "Second" 2>&1 | sed 's/\x1b\[[0-9;]*m//g' || true)
 echo "$reinit_out" | grep -qiE "already|initialised|initialized" \
     && pass "Re-init blocked with warning" \
     || fail "Re-init not blocked (got: $reinit_out)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 3: arc42-c4 new adr
+# TEST 3: axon new adr
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 3: arc42-c4 new adr ]"
+echo "[ Test 3: axon new adr ]"
 VISUAL=true "$BIN" new adr "Use PostgreSQL as the Operational Database" >/dev/null 2>&1
 
 ADR_2=$(find documentation/adrs -name "0002-*.adoc" | head -1)
@@ -103,10 +103,10 @@ assert_contains "documentation/arc42/09_architecture_decisions.adoc" "0002-"
 assert_contains "$ADR_2" "ACCEPTED"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 4: arc42-c4 new tdr
+# TEST 4: axon new tdr
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 4: arc42-c4 new tdr ]"
+echo "[ Test 4: axon new tdr ]"
 VISUAL=true "$BIN" new tdr "Memory Leak Under High Load" >/dev/null 2>&1
 
 TDR_1=$(find documentation/tdrs -name "0001-*.adoc" | head -1)
@@ -115,10 +115,10 @@ assert_contains "documentation/arc42/11_technical_risks.adoc" "0001-"
 assert_contains "$TDR_1" "OPEN"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 5: arc42-c4 new data-card, model-card, runbook, guideline
+# TEST 5: axon new data-card, model-card, runbook, guideline
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 5: arc42-c4 new (other types) ]"
+echo "[ Test 5: axon new (other types) ]"
 VISUAL=true "$BIN" new data-card  "Raw User Events Dataset" >/dev/null 2>&1
 VISUAL=true "$BIN" new model-card "Fraud Detection Classifier" >/dev/null 2>&1
 VISUAL=true "$BIN" new runbook    "Deploy to Production" >/dev/null 2>&1
@@ -130,7 +130,7 @@ assert_exists "$(find documentation/runbooks     -name "0001-*.adoc" | head -1)"
 assert_exists "$(find documentation/guidelines   -name "0001-*.adoc" | head -1)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 6: arc42-c4 new adr -s (supersession)
+# TEST 6: axon new adr -s (supersession)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "[ Test 6: Supersession (-s flag) ]"
@@ -142,10 +142,10 @@ assert_contains "$ADR_2" "SUPERSEDED"
 assert_contains "$ADR_3" "Supersedes"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 7: arc42-c4 list
+# TEST 7: axon list
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 7: arc42-c4 list ]"
+echo "[ Test 7: axon list ]"
 list_output=$("$BIN" list adr 2>&1)
 echo "$list_output" | grep -q "0001" && pass "list adr shows #0001" || fail "list adr missing #0001"
 echo "$list_output" | grep -q "0002" && pass "list adr shows #0002" || fail "list adr missing #0002"
@@ -159,10 +159,10 @@ echo "$summary_output" | grep -q "task" && pass "list shows task type" || fail "
 echo "$summary_output" | grep -q "meeting" && pass "list shows meeting type" || fail "list missing meeting type"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 8: arc42-c4 new experiment
+# TEST 8: axon new experiment
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 8: arc42-c4 new experiment ]"
+echo "[ Test 8: axon new experiment ]"
 assert_exists "documentation/experiments"
 
 VISUAL=true "$BIN" new experiment "Redis for Session Caching" >/dev/null 2>&1
@@ -186,10 +186,10 @@ summary_out=$("$BIN" list 2>&1)
 echo "$summary_out" | grep -q "experiment" && pass "list summary shows experiment type" || fail "list summary missing experiment"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 9: arc42-c4 promote
+# TEST 9: axon promote
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 9: arc42-c4 promote ]"
+echo "[ Test 9: axon promote ]"
 
 # Count ADRs before promote
 adr_count_before=$(ls documentation/adrs/*.adoc 2>/dev/null | wc -l)
@@ -217,10 +217,10 @@ assert_contains "$EXP_1" "Promoted to ADR"
 assert_contains "documentation/arc42/09_architecture_decisions.adoc" "adopt-redis"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 10: arc42-c4 generate (--skip-dsl, no Docker needed)
+# TEST 10: axon generate (--skip-dsl, no Docker needed)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 10: arc42-c4 generate --skip-dsl ]"
+echo "[ Test 10: axon generate --skip-dsl ]"
 "$BIN" generate --skip-dsl >/dev/null 2>&1 \
     && pass "generate --skip-dsl exited cleanly" \
     || fail "generate --skip-dsl failed"
@@ -236,7 +236,7 @@ echo "[ Test 11: Error handling ]"
 # Unknown command: should exit non-zero and print something useful
 unknown_cmd_out=$("$BIN" bogus-command 2>&1 | sed 's/\x1b\[[0-9;]*m//g' || true)
 unknown_cmd_exit=${PIPESTATUS[0]:-1}
-([ "$unknown_cmd_exit" -ne 0 ] || echo "$unknown_cmd_out" | grep -qiE "commands|usage|arc42") \
+([ "$unknown_cmd_exit" -ne 0 ] || echo "$unknown_cmd_out" | grep -qiE "commands|usage|axon") \
     && pass "Unknown command handled gracefully (exit $unknown_cmd_exit)" \
     || fail "Unknown command not handled"
 
@@ -247,10 +247,10 @@ echo "$unknown_type_out" | grep -qiE "unknown|invalid|valid" \
     || fail "Unknown type not handled (got: $unknown_type_out)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 12: arc42-c4 new epic
+# TEST 12: axon new epic
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 12: arc42-c4 new epic ]"
+echo "[ Test 12: axon new epic ]"
 assert_exists "documentation/epics"
 
 VISUAL=true "$BIN" new epic "Migrate to Event-Driven Architecture" >/dev/null 2>&1
@@ -265,10 +265,10 @@ echo "$list_epics" | grep -q "0001" && pass "list epic shows #0001" || fail "lis
 echo "$list_epics" | grep -qi "PRIORITY" && pass "list epic shows PRIORITY column" || fail "list epic missing PRIORITY column"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 13: arc42-c4 new task with class
+# TEST 13: axon new task with class
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 13: arc42-c4 new task (with class) ]"
+echo "[ Test 13: axon new task (with class) ]"
 assert_exists "documentation/tasks"
 
 VISUAL=true "$BIN" new task -c FEAT "Add OAuth2 Login Flow" >/dev/null 2>&1
@@ -304,20 +304,20 @@ echo "$list_tasks" | grep -q "0001" && pass "list task shows #0001" || fail "lis
 echo "$list_tasks" | grep -qi "CLASS" && pass "list task shows CLASS column" || fail "list task missing CLASS column"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 14: arc42-c4 list task --board (Kanban view)
+# TEST 14: axon list task --board (Kanban view)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 14: arc42-c4 list task --board (Kanban view) ]"
+echo "[ Test 14: axon list task --board (Kanban view) ]"
 board_out=$("$BIN" list task --board 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$board_out" | grep -qiE "TODO|DONE|IN-PROGRESS|BLOCKED" \
     && pass "Kanban board shows status columns" \
     || fail "Kanban board missing status columns"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 15: arc42-c4 new meeting
+# TEST 15: axon new meeting
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 15: arc42-c4 new meeting ]"
+echo "[ Test 15: axon new meeting ]"
 assert_exists "documentation/meetings"
 
 VISUAL=true "$BIN" new meeting "Sprint 12 Planning" >/dev/null 2>&1
@@ -332,10 +332,10 @@ echo "$list_meetings" | grep -q "0001" && pass "list meeting shows #0001" || fai
 echo "$list_meetings" | grep -qi "DATE" && pass "list meeting shows DATE column" || fail "list meeting missing DATE column"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TEST 16: arc42-c4 new experiment --notebook (optional Jupyter notebook)
+# TEST 16: axon new experiment --notebook (optional Jupyter notebook)
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
-echo "[ Test 16: arc42-c4 new experiment --notebook ]"
+echo "[ Test 16: axon new experiment --notebook ]"
 VISUAL=true "$BIN" new experiment --notebook "Transformer Fine-Tuning Benchmark" >/dev/null 2>&1
 EXP_NB=$(find documentation/experiments -name "0003-*.adoc" | head -1)
 NB_FILE=$(find documentation/experiments -name "0003-*.ipynb" | head -1)

@@ -54,7 +54,7 @@ _Notes from discussion..._
 | 1 | [Action description]      | —         | —
 |===
 
-// To create a task for an action item: arc42-c4 new task "Action Item Title"
+// To create a task for an action item: axon new task "Action Item Title"
 
 === Next Meeting
 

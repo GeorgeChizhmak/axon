@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-eval "$($(dirname "$0")/arc42-c4-config)"
+eval "$($(dirname "$0")/axon-config)"
 
-## usage: arc42-c4 new <TYPE> <TITLE WORDS...> [-s SUPERSEDED] [-c CLASS] [--notebook]
+## usage: axon new <TYPE> <TITLE WORDS...> [-s SUPERSEDED] [-c CLASS] [--notebook]
 ##
 ## Creates a new, numbered document of the given type. The TITLE WORDS are
 ## concatenated to form the document title. The file is opened for editing in
@@ -30,30 +30,30 @@ eval "$($(dirname "$0")/arc42-c4-config)"
 ##   --notebook   Also create a companion Jupyter notebook (.ipynb) for experiments
 ##
 ## Examples:
-##   arc42-c4 new adr "Use PostgreSQL as the operational database"
-##   arc42-c4 new adr -s 3 "Switch to CockroachDB for global deployments"
-##   arc42-c4 new tdr "Memory leak in NLP worker under high load"
-##   arc42-c4 new epic "Migrate to event-driven architecture"
-##   arc42-c4 new task -c FEAT "Add OAuth2 login flow"
-##   arc42-c4 new task -c HYPO "Validate latency improvement hypothesis"
-##   arc42-c4 new experiment "Redis vs Memcached for session storage"
-##   arc42-c4 new experiment --notebook "Transformer fine-tuning benchmark"
-##   arc42-c4 new meeting "Sprint 12 Planning"
-##   arc42-c4 new data-card "Raw User Events Dataset"
-##   arc42-c4 new model-card "Sentiment Classifier v2"
-##   arc42-c4 new runbook "Deploy to Kubernetes Production"
-##   arc42-c4 new guideline "REST API Design Standards"
+##   axon new adr "Use PostgreSQL as the operational database"
+##   axon new adr -s 3 "Switch to CockroachDB for global deployments"
+##   axon new tdr "Memory leak in NLP worker under high load"
+##   axon new epic "Migrate to event-driven architecture"
+##   axon new task -c FEAT "Add OAuth2 login flow"
+##   axon new task -c HYPO "Validate latency improvement hypothesis"
+##   axon new experiment "Redis vs Memcached for session storage"
+##   axon new experiment --notebook "Transformer fine-tuning benchmark"
+##   axon new meeting "Sprint 12 Planning"
+##   axon new data-card "Raw User Events Dataset"
+##   axon new model-card "Sentiment Classifier v2"
+##   axon new runbook "Deploy to Kubernetes Production"
+##   axon new guideline "REST API Design Standards"
 ##
 ## Once an experiment succeeds, promote it to an ADR:
-##   arc42-c4 promote <EXPERIMENT_NUM>
+##   axon promote <EXPERIMENT_NUM>
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
-success() { echo -e "${GREEN}[arc42-c4] ✓${NC} $*"; }
-error()   { echo -e "${RED}[arc42-c4] ✗${NC} $*" >&2; }
+success() { echo -e "${GREEN}[axon] ✓${NC} $*"; }
+error()   { echo -e "${RED}[axon] ✗${NC} $*" >&2; }
 
 # ── Type → subdir + aggregator mapping ───────────────────────────────────────
 declare -A TYPE_DIRS=(
@@ -95,7 +95,7 @@ VALID_TASK_CLASSES="BUG FEAT TASK SPIKE CHORE EPIC HYPO DATA CALIB REPRO META AN
 # ── Parse type ────────────────────────────────────────────────────────────────
 if [ $# -eq 0 ]; then
     error "No document type given."
-    echo "Usage: arc42-c4 new <TYPE> <TITLE...> [-s NUM] [-c CLASS] [--notebook]" >&2
+    echo "Usage: axon new <TYPE> <TITLE...> [-s NUM] [-c CLASS] [--notebook]" >&2
     echo "Types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline" >&2
     exit 1
 fi
@@ -153,16 +153,16 @@ fi
 # ── Validate title ────────────────────────────────────────────────────────────
 TITLE="$*"
 if [ -z "$TITLE" ]; then
-    error "No title given. Usage: arc42-c4 new $TYPE <Title Words...>"
+    error "No title given. Usage: axon new $TYPE <Title Words...>"
     exit 1
 fi
 
 # ── Resolve documentation root ────────────────────────────────────────────────
-# Honour ARC42C4_DOCS_DIR (set by init to avoid double-lookup), else walk up
-if [ -n "${ARC42C4_DOCS_DIR:-}" ]; then
-    DOCS_DIR="$ARC42C4_DOCS_DIR"
+# Honour AXON_DOCS_DIR (set by init to avoid double-lookup), else walk up
+if [ -n "${AXON_DOCS_DIR:-}" ]; then
+    DOCS_DIR="$AXON_DOCS_DIR"
 else
-    DOCS_DIR="$("$arc42c4_bin_dir/_arc42c4_dir")"
+    DOCS_DIR="$("$axon_bin_dir/_axon_dir")"
 fi
 
 SUBDIR="$DOCS_DIR/${TYPE_DIRS[$TYPE]}"
@@ -184,7 +184,7 @@ fi
 NEWID=$(printf "%04d" "$NEWNUM")
 SLUG=$(echo -n "$TITLE" | tr -Ccs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
 DSTFILE="$SUBDIR/${NEWID}-${SLUG}.adoc"
-DATE="${ARC42C4_DATE:-$(date +%Y-%m-%d)}"
+DATE="${AXON_DATE:-$(date +%Y-%m-%d)}"
 STATUS="${TYPE_STATUS[$TYPE]}"
 
 # ── Choose template ───────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ CUSTOM_TEMPLATE="$DOCS_DIR/templates/${TYPE}.adoc"
 if [ -f "$CUSTOM_TEMPLATE" ]; then
     TEMPLATE="$CUSTOM_TEMPLATE"
 else
-    TEMPLATE="$arc42c4_template_dir/doc-types/${TYPE}.adoc"
+    TEMPLATE="$axon_template_dir/doc-types/${TYPE}.adoc"
 fi
 
 if [ ! -f "$TEMPLATE" ]; then
@@ -219,7 +219,7 @@ for target_num in "${SUPERSEDED[@]}"; do
     target_file=$(ls "$SUBDIR/${target_id}-"*.adoc 2>/dev/null | head -1)
 
     if [ -z "$target_file" ]; then
-        echo "[arc42-c4] WARNING: Could not find $TYPE #${target_num} to mark as superseded." >&2
+        echo "[axon] WARNING: Could not find $TYPE #${target_num} to mark as superseded." >&2
         continue
     fi
 
@@ -260,7 +260,7 @@ fi
 
 # ── Optionally create companion Jupyter notebook (experiments only) ───────────
 if [ "$TYPE" = "experiment" ] && $CREATE_NOTEBOOK; then
-    NOTEBOOK_TEMPLATE="$arc42c4_template_dir/doc-types/experiment.ipynb"
+    NOTEBOOK_TEMPLATE="$axon_template_dir/doc-types/experiment.ipynb"
     NOTEBOOK_CUSTOM="$DOCS_DIR/templates/experiment.ipynb"
     [ -f "$NOTEBOOK_CUSTOM" ] && NOTEBOOK_TEMPLATE="$NOTEBOOK_CUSTOM"
 
@@ -279,7 +279,7 @@ if [ "$TYPE" = "experiment" ] && $CREATE_NOTEBOOK; then
         echo "" >> "$DSTFILE"
         echo "// Companion notebook: link:${NEWID}-${SLUG}.ipynb[Jupyter Notebook]" >> "$DSTFILE"
     else
-        echo "[arc42-c4] WARNING: Notebook template not found at $NOTEBOOK_TEMPLATE — skipping." >&2
+        echo "[axon] WARNING: Notebook template not found at $NOTEBOOK_TEMPLATE — skipping." >&2
     fi
 fi
 

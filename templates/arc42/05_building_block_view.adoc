@@ -8,7 +8,7 @@
 === Level 1: System Context
 
 // TODO: Include or reference the C4 System Context diagram.
-// After running `arc42-c4 generate`, the exported PlantUML file will be in diagrams/.
+// After running `axon generate`, the exported PlantUML file will be in diagrams/.
 
 // Example of including an exported Structurizr diagram:
 // image::diagrams/SystemContext.svg[System Context Diagram]

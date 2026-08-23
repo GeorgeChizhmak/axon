@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-eval "$($(dirname "$0")/arc42-c4-config)"
+eval "$($(dirname "$0")/axon-config)"
 
-## usage: arc42-c4 init [DIRECTORY] [-n "Project Name"] [-a "Author <email>"]
+## usage: axon init [DIRECTORY] [-n "Project Name"] [-a "Author <email>"]
 ##
 ## Initialises a new Arc42 + C4 Model documentation workspace:
 ##
-##   * Creates a .arc42-c4-dir config file in the current directory
+##   * Creates a .axon-dir config file in the current directory
 ##   * Scaffolds the full arc42/ chapter structure (13 AsciiDoc sections)
 ##   * Copies a starter workspace.dsl for the C4 model
 ##   * Creates subdirectories: adrs/, tdrs/, data-cards/, model-cards/,
@@ -24,7 +24,7 @@ eval "$($(dirname "$0")/arc42-c4-config)"
 ##                (default: "Author <author@example.com>")
 ##
 ## Example:
-##   arc42-c4 init documentation -n "Order Service" -a "Jane <jane@acme.com>"
+##   axon init documentation -n "Order Service" -a "Jane <jane@acme.com>"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -32,10 +32,10 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-info()    { echo -e "${CYAN}[arc42-c4]${NC} $*"; }
-success() { echo -e "${GREEN}[arc42-c4] ✓${NC} $*"; }
-warn()    { echo -e "${YELLOW}[arc42-c4] ⚠${NC} $*"; }
-error()   { echo -e "${RED}[arc42-c4] ✗${NC} $*" >&2; }
+info()    { echo -e "${CYAN}[axon]${NC} $*"; }
+success() { echo -e "${GREEN}[axon] ✓${NC} $*"; }
+warn()    { echo -e "${YELLOW}[axon] ⚠${NC} $*"; }
+error()   { echo -e "${RED}[axon] ✗${NC} $*" >&2; }
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
 DOCS_DIR="documentation"
@@ -62,15 +62,15 @@ TODAY=$(date +%Y-%m-%d)
 YEAR=$(date +%Y)
 
 # ── Guard: already initialised ────────────────────────────────────────────────
-if [ -f ".arc42-c4-dir" ]; then
-    warn ".arc42-c4-dir already exists. Workspace appears to be initialised."
-    warn "Remove .arc42-c4-dir to re-initialise."
+if [ -f ".axon-dir" ]; then
+    warn ".axon-dir already exists. Workspace appears to be initialised."
+    warn "Remove .axon-dir to re-initialise."
     exit 1
 fi
 
 echo ""
 echo -e "${CYAN}══════════════════════════════════════════════════════${NC}"
-echo -e "${CYAN}   arc42-c4 — Initialising Documentation Workspace   ${NC}"
+echo -e "${CYAN}   axon — Initialising Engineering Workspace         ${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════${NC}"
 echo ""
 info "Project name : $PROJECT_NAME"
@@ -78,9 +78,9 @@ info "Author       : $AUTHOR"
 info "Docs dir     : $DOCS_DIR"
 echo ""
 
-# ── 1. Write .arc42-c4-dir ───────────────────────────────────────────────────
-echo "$DOCS_DIR" > .arc42-c4-dir
-success "Created .arc42-c4-dir"
+# ── 1. Write .axon-dir ───────────────────────────────────────────────────────
+echo "$DOCS_DIR" > .axon-dir
+success "Created .axon-dir"
 
 # ── Helper: substitute tokens in a template file and write to destination ─────
 render_template() {
@@ -98,7 +98,7 @@ render_template() {
 
 # ── 2. Scaffold arc42/ chapters ───────────────────────────────────────────────
 info "Scaffolding arc42/ chapters..."
-for f in "$arc42c4_template_dir/arc42/"*.adoc; do
+for f in "$axon_template_dir/arc42/"*.adoc; do
     fname="$(basename "$f")"
     render_template "$f" "$DOCS_DIR/arc42/$fname"
 done
@@ -106,12 +106,12 @@ success "arc42/ chapters written to $DOCS_DIR/arc42/"
 
 # ── 3. Copy workspace.dsl ────────────────────────────────────────────────────
 info "Copying workspace.dsl..."
-render_template "$arc42c4_template_dir/workspace.dsl" "$DOCS_DIR/workspace.dsl"
+render_template "$axon_template_dir/workspace.dsl" "$DOCS_DIR/workspace.dsl"
 success "C4 workspace DSL → $DOCS_DIR/workspace.dsl"
 
 # ── 4. Create master adoc aggregator ─────────────────────────────────────────
 info "Creating master AsciiDoc aggregator..."
-render_template "$arc42c4_template_dir/main.adoc" "$DOCS_DIR/${PROJECT_SLUG}.adoc"
+render_template "$axon_template_dir/main.adoc" "$DOCS_DIR/${PROJECT_SLUG}.adoc"
 success "Master aggregator → $DOCS_DIR/${PROJECT_SLUG}.adoc"
 
 # ── 5. Create subdirectories ──────────────────────────────────────────────────
@@ -123,14 +123,14 @@ success "Subdirectories created under $DOCS_DIR/"
 
 # ── 6. Write README.adoc ──────────────────────────────────────────────────────
 info "Writing README.adoc..."
-render_template "$arc42c4_template_dir/README.adoc" "README.adoc"
+render_template "$axon_template_dir/README.adoc" "README.adoc"
 success "README.adoc written"
 
 # ── 7. Create ADR #0001 silently (no editor) ─────────────────────────────────
 info "Creating ADR #0001: Record Architecture Decisions..."
 VISUAL=true \
-  ARC42C4_DOCS_DIR="$DOCS_DIR" \
-  "$arc42c4_bin_dir/arc42-c4-new" adr "Record Architecture Decisions"
+  AXON_DOCS_DIR="$DOCS_DIR" \
+  "$axon_bin_dir/axon-new" adr "Record Architecture Decisions"
 success "ADR #0001 created"
 
 echo ""
@@ -138,9 +138,9 @@ success "Workspace initialised! Next steps:"
 echo ""
 echo "  1. Edit $DOCS_DIR/workspace.dsl to model your C4 architecture"
 echo "  2. Fill in arc42/ chapter files with your project details"
-echo "  3. Run 'arc42-c4 new adr \"My Decision\"' to add architecture decisions"
-echo "  4. Run 'arc42-c4 new epic \"My Epic\"' to track project epics and timelines"
-echo "  5. Run 'arc42-c4 new task -c FEAT \"My Task\"' to add tasks to the board"
-echo "  6. Run 'arc42-c4 new meeting \"Sprint Planning\"' to log meeting agendas"
-echo "  7. Run 'arc42-c4 generate' to build HTML and PDF reports"
+echo "  3. Run 'axon new adr \"My Decision\"' to add architecture decisions"
+echo "  4. Run 'axon new epic \"My Epic\"' to track project epics and timelines"
+echo "  5. Run 'axon new task -c FEAT \"My Task\"' to add tasks to the board"
+echo "  6. Run 'axon new meeting \"Sprint Planning\"' to log meeting agendas"
+echo "  7. Run 'axon generate' to build HTML and PDF reports"
 echo ""

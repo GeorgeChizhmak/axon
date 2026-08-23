@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -e
+eval "$($(dirname "$0")/axon-config)"
+
+## usage: axon COMMAND [ARGS...]
+##
+## axon is an Engineering Workspace Ecosystem for managing Arc42 + C4 Model
+## documentation, experiments, tasks, and project artefacts using AsciiDoc.
+## It follows the same conventions as adr-tools.
+##
+## Commands:
+##   init       Initialise a new documentation workspace
+##   new        Create a new document (adr, tdr, experiment, task, epic, etc.)
+##   generate   Render HTML and PDF documentation reports
+##   list       List documents of a given type
+##   promote    Promote a successful experiment to an ADR
+##   help       Show help for a command
+##
+## Run 'axon help COMMAND' for help on a specific command.
+
+cmd="$axon_bin_dir/axon-$1"
+
+if [ -x "$cmd" ]; then
+    "$cmd" "${@:2}"
+else
+    "$axon_bin_dir/axon-help"
+    exit 1
+fi
