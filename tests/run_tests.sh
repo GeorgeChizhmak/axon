@@ -66,6 +66,10 @@ assert_exists "documentation/arc42/09_architecture_decisions.adoc"
 assert_exists "documentation/arc42/11_technical_risks.adoc"
 assert_exists "documentation/adrs"
 assert_exists "documentation/tdrs"
+assert_exists "documentation/experiments"
+assert_exists "documentation/epics"
+assert_exists "documentation/tasks"
+assert_exists "documentation/meetings"
 assert_exists "documentation/data-cards"
 assert_exists "documentation/model-cards"
 assert_exists "documentation/runbooks"
@@ -149,6 +153,10 @@ echo "$list_output" | grep -q "0003" && pass "list adr shows #0003" || fail "lis
 
 summary_output=$("$BIN" list 2>&1)
 echo "$summary_output" | grep -q "adr" && pass "list shows adr type" || fail "list missing adr type"
+echo "$summary_output" | grep -qi "Project Management" && pass "list shows Project Management section" || fail "list missing Project Management section"
+echo "$summary_output" | grep -q "epic" && pass "list shows epic type" || fail "list missing epic type"
+echo "$summary_output" | grep -q "task" && pass "list shows task type" || fail "list missing task type"
+echo "$summary_output" | grep -q "meeting" && pass "list shows meeting type" || fail "list missing meeting type"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TEST 8: arc42-c4 new experiment
@@ -237,6 +245,105 @@ unknown_type_out=$("$BIN" new unknown-type "Title" 2>&1 | sed 's/\x1b\[[0-9;]*m/
 echo "$unknown_type_out" | grep -qiE "unknown|invalid|valid" \
     && pass "Unknown type handled gracefully" \
     || fail "Unknown type not handled (got: $unknown_type_out)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 12: arc42-c4 new epic
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 12: arc42-c4 new epic ]"
+assert_exists "documentation/epics"
+
+VISUAL=true "$BIN" new epic "Migrate to Event-Driven Architecture" >/dev/null 2>&1
+EPIC_1=$(find documentation/epics -name "0001-*.adoc" | head -1)
+[ -n "$EPIC_1" ] && pass "Epic #0001 created: $(basename "$EPIC_1")" || fail "Epic #0001 not found"
+assert_contains "$EPIC_1" "EPIC-0001"
+assert_contains "$EPIC_1" "PLANNING"
+assert_contains "$EPIC_1" "Gantt"
+
+list_epics=$("$BIN" list epic 2>&1)
+echo "$list_epics" | grep -q "0001" && pass "list epic shows #0001" || fail "list epic missing #0001"
+echo "$list_epics" | grep -qi "PRIORITY" && pass "list epic shows PRIORITY column" || fail "list epic missing PRIORITY column"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 13: arc42-c4 new task with class
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 13: arc42-c4 new task (with class) ]"
+assert_exists "documentation/tasks"
+
+VISUAL=true "$BIN" new task -c FEAT "Add OAuth2 Login Flow" >/dev/null 2>&1
+TASK_1=$(find documentation/tasks -name "0001-*.adoc" | head -1)
+[ -n "$TASK_1" ] && pass "Task #0001 created: $(basename "$TASK_1")" || fail "Task #0001 not found"
+assert_contains "$TASK_1" "FEAT"
+assert_contains "$TASK_1" "TODO"
+
+VISUAL=true "$BIN" new task -c HYPO "Validate Caching Latency Improvement" >/dev/null 2>&1
+TASK_2=$(find documentation/tasks -name "0002-*.adoc" | head -1)
+[ -n "$TASK_2" ] && pass "Task #0002 (HYPO class) created: $(basename "$TASK_2")" || fail "Task #0002 not found"
+assert_contains "$TASK_2" "HYPO"
+
+VISUAL=true "$BIN" new task -c BUG "Memory Leak in Worker Process" >/dev/null 2>&1
+TASK_3=$(find documentation/tasks -name "0003-*.adoc" | head -1)
+[ -n "$TASK_3" ] && pass "Task #0003 (BUG class) created: $(basename "$TASK_3")" || fail "Task #0003 not found"
+assert_contains "$TASK_3" "BUG"
+
+# Default class should be TASK
+VISUAL=true "$BIN" new task "Refactor Payment Service" >/dev/null 2>&1
+TASK_4=$(find documentation/tasks -name "0004-*.adoc" | head -1)
+[ -n "$TASK_4" ] && pass "Task #0004 (default TASK class) created: $(basename "$TASK_4")" || fail "Task #0004 not found"
+assert_contains "$TASK_4" "TASK"
+
+# Invalid class should be rejected
+invalid_class_out=$("$BIN" new task -c INVALID "Some Task" 2>&1 | sed 's/\x1b\[[0-9;]*m//g' || true)
+echo "$invalid_class_out" | grep -qiE "unknown|invalid|valid" \
+    && pass "Invalid task class rejected gracefully" \
+    || fail "Invalid task class not rejected"
+
+list_tasks=$("$BIN" list task 2>&1)
+echo "$list_tasks" | grep -q "0001" && pass "list task shows #0001" || fail "list task missing #0001"
+echo "$list_tasks" | grep -qi "CLASS" && pass "list task shows CLASS column" || fail "list task missing CLASS column"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 14: arc42-c4 list task --board (Kanban view)
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 14: arc42-c4 list task --board (Kanban view) ]"
+board_out=$("$BIN" list task --board 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+echo "$board_out" | grep -qiE "TODO|DONE|IN-PROGRESS|BLOCKED" \
+    && pass "Kanban board shows status columns" \
+    || fail "Kanban board missing status columns"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 15: arc42-c4 new meeting
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 15: arc42-c4 new meeting ]"
+assert_exists "documentation/meetings"
+
+VISUAL=true "$BIN" new meeting "Sprint 12 Planning" >/dev/null 2>&1
+MEETING_1=$(find documentation/meetings -name "0001-*.adoc" | head -1)
+[ -n "$MEETING_1" ] && pass "Meeting #0001 created: $(basename "$MEETING_1")" || fail "Meeting #0001 not found"
+assert_contains "$MEETING_1" "SCHEDULED"
+assert_contains "$MEETING_1" "Agenda"
+assert_contains "$MEETING_1" "Action Items"
+
+list_meetings=$("$BIN" list meeting 2>&1)
+echo "$list_meetings" | grep -q "0001" && pass "list meeting shows #0001" || fail "list meeting missing #0001"
+echo "$list_meetings" | grep -qi "DATE" && pass "list meeting shows DATE column" || fail "list meeting missing DATE column"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 16: arc42-c4 new experiment --notebook (optional Jupyter notebook)
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 16: arc42-c4 new experiment --notebook ]"
+VISUAL=true "$BIN" new experiment --notebook "Transformer Fine-Tuning Benchmark" >/dev/null 2>&1
+EXP_NB=$(find documentation/experiments -name "0003-*.adoc" | head -1)
+NB_FILE=$(find documentation/experiments -name "0003-*.ipynb" | head -1)
+[ -n "$EXP_NB" ] && pass "Experiment #0003 adoc created: $(basename "$EXP_NB")" || fail "Experiment #0003 adoc not found"
+[ -n "$NB_FILE" ] && pass "Experiment #0003 notebook created: $(basename "$NB_FILE")" || fail "Experiment #0003 notebook not found"
+assert_contains "$NB_FILE" "EXP-0003"
+assert_contains "$NB_FILE" "Transformer Fine-Tuning Benchmark"
+assert_contains "$EXP_NB" "Companion notebook"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary

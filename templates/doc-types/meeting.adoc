@@ -1,0 +1,62 @@
+== Meeting NUMBER: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Date:* DATE +
+*Time:* — +
+*Location / Call Link:* — +
+*Facilitator:* — +
+*Minute Taker:* —
+====
+
+// Status values: SCHEDULED | COMPLETED | CANCELLED
+
+=== Attendees
+
+[options="header", cols="2,2,1"]
+|===
+|Name       |Role / Team    |Present?
+| —         | —             | ✓ / ✗
+|===
+
+=== Agenda
+
+. [Agenda item 1]
+. [Agenda item 2]
+. [Agenda item 3]
+
+=== Discussion & Minutes
+
+==== [Agenda item 1]
+
+_Notes from discussion..._
+
+==== [Agenda item 2]
+
+_Notes from discussion..._
+
+=== Decisions Made
+
+// Cross-reference decisions to ADRs where applicable.
+
+[options="header", cols="1,3,2"]
+|===
+|#  |Decision                   |Reference
+| 1 | [Decision summary]        | link:../adrs/[ADR #—]
+|===
+
+=== Action Items
+
+[options="header", cols="1,3,2,1"]
+|===
+|#  |Action                     |Assignee   |Due Date
+| 1 | [Action description]      | —         | —
+|===
+
+// To create a task for an action item: arc42-c4 new task "Action Item Title"
+
+=== Next Meeting
+
+* *Date:* —
+* *Agenda Preview:* —

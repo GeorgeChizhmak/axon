@@ -116,7 +116,7 @@ success "Master aggregator → $DOCS_DIR/${PROJECT_SLUG}.adoc"
 
 # ── 5. Create subdirectories ──────────────────────────────────────────────────
 info "Creating document subdirectories..."
-for subdir in adrs tdrs experiments data-cards model-cards runbooks guidelines diagrams; do
+for subdir in adrs tdrs experiments epics tasks meetings data-cards model-cards runbooks guidelines diagrams; do
     mkdir -p "$DOCS_DIR/$subdir"
 done
 success "Subdirectories created under $DOCS_DIR/"
@@ -139,5 +139,8 @@ echo ""
 echo "  1. Edit $DOCS_DIR/workspace.dsl to model your C4 architecture"
 echo "  2. Fill in arc42/ chapter files with your project details"
 echo "  3. Run 'arc42-c4 new adr \"My Decision\"' to add architecture decisions"
-echo "  4. Run 'arc42-c4 generate' to build HTML and PDF reports"
+echo "  4. Run 'arc42-c4 new epic \"My Epic\"' to track project epics and timelines"
+echo "  5. Run 'arc42-c4 new task -c FEAT \"My Task\"' to add tasks to the board"
+echo "  6. Run 'arc42-c4 new meeting \"Sprint Planning\"' to log meeting agendas"
+echo "  7. Run 'arc42-c4 generate' to build HTML and PDF reports"
 echo ""

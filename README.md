@@ -11,9 +11,39 @@ Inspired by [`adr-tools`](https://github.com/npryce/adr-tools) and the documenta
 - **`arc42-c4 init`** — Scaffolds a complete Arc42 + C4 workspace in seconds: all 13 section files, `workspace.dsl`, subdirectories, `README.adoc`, and ADR #0001
 - **`arc42-c4 new`** — Adds any document type with auto-numbering, slug generation, and (for ADRs/TDRs) automatic injection into the Arc42 aggregator section
 - **`arc42-c4 generate`** — Builds HTML and PDF reports; exports Structurizr DSL → PlantUML via Docker
-- **`arc42-c4 list`** — Lists documents with status from NOTE blocks
+- **`arc42-c4 list`** — Lists documents with status from NOTE blocks; tasks support a `--board` Kanban view
 
-**Supported document types:** `adr`, `tdr`, `data-card`, `model-card`, `runbook`, `guideline`
+**Supported document types:**
+
+| Type | Directory | Description |
+|---|---|---|
+| `adr` | `adrs/` | Architecture Decision Records |
+| `tdr` | `tdrs/` | Technical Debt / Risk Records |
+| `experiment` | `experiments/` | Tracked experiments (optional companion `.ipynb`) |
+| `epic` | `epics/` | High-level project epics with PlantUML Gantt timelines |
+| `task` | `tasks/` | Project & engineering tasks with class taxonomy |
+| `meeting` | `meetings/` | Meeting agendas and minutes |
+| `data-card` | `data-cards/` | Dataset documentation |
+| `model-card` | `model-cards/` | ML model documentation |
+| `runbook` | `runbooks/` | Operational runbooks |
+| `guideline` | `guidelines/` | Coding & design guidelines |
+
+**Task Classes** (set with `-c CLASS` on `arc42-c4 new task`):
+
+| Class | Category | Description |
+|---|---|---|
+| `BUG` | Standard | Flaws, errors, or unexpected behavior |
+| `FEAT` | Standard | New features or functional enhancements |
+| `TASK` | Standard | Routine engineering work *(default)* |
+| `SPIKE` | Standard | Research or proof-of-concept exploration |
+| `CHORE` | Standard | Operational updates (CI/CD, build scripts) |
+| `EPIC` | Standard | Large objectives that split into sub-tasks |
+| `HYPO` | Scientific | Hypothesis testing experiment design |
+| `DATA` | Scientific | Data collection, cleaning, or curation |
+| `CALIB` | Scientific | Calibration & alignment of models/instruments |
+| `REPRO` | Scientific | Reproducibility check of prior results |
+| `META` | Scientific | Meta-analysis or literature review |
+| `ANLYS` | Scientific | Statistical analysis / post-processing |
 
 ---
 
@@ -58,7 +88,27 @@ arc42-c4 new adr "Use PostgreSQL as the operational database"
 # Add a Technical Debt/Risk Record
 arc42-c4 new tdr "No retry logic in payment processor"
 
-# Add a Data Card
+# Add a project epic (with Gantt timeline template)
+arc42-c4 new epic "Migrate to event-driven architecture"
+
+# Add tasks to the board (standard and scientific classes)
+arc42-c4 new task -c FEAT "Add OAuth2 login flow"
+arc42-c4 new task -c BUG "Memory leak in NLP worker"
+arc42-c4 new task -c HYPO "Validate caching latency improvement"
+
+# View tasks as a Kanban board (grouped by status)
+arc42-c4 list task --board
+
+# Add a meeting log (agenda + minutes)
+arc42-c4 new meeting "Sprint 12 Planning"
+
+# Add a scientific experiment
+arc42-c4 new experiment "Redis vs Memcached for session storage"
+
+# Add a scientific experiment with a Jupyter notebook companion
+arc42-c4 new experiment --notebook "Transformer fine-tuning benchmark"
+
+# Add other document types
 arc42-c4 new data-card "Raw Order Events"
 
 # Add a Model Card
@@ -87,10 +137,10 @@ arc42-c4 list
 | Command | Description |
 |---|---|
 | `arc42-c4 init [DIR] [-n NAME] [-a AUTHOR]` | Initialise workspace |
-| `arc42-c4 new <type> <title...> [-s NUM]`   | Create a new document |
+| `arc42-c4 new <type> <title..> [-s NUM] [-c CLASS] [--notebook]` | Create a new document |
 | `arc42-c4 generate [--html\|--pdf\|--skip-dsl]` | Build HTML and PDF |
-| `arc42-c4 list [type]`                       | List documents |
-| `arc42-c4 help [command]`                    | Show help |
+| `arc42-c4 list [type] [--board]` | List documents |
+| `arc42-c4 help [command]` | Show help |
 
 Run `arc42-c4 help <command>` for detailed options.
 
@@ -116,6 +166,10 @@ your-project/
     │   └── 13_appendix.adoc
     ├── adrs/                  # Architecture Decision Records
     ├── tdrs/                  # Technical Debt/Risk Records
+    ├── experiments/           # Tracked experiments (.adoc + optional .ipynb)
+    ├── epics/                 # Project epics (with Gantt timeline)
+    ├── tasks/                 # Tasks board (class + kanban)
+    ├── meetings/              # Meeting agendas & minutes
     ├── data-cards/            # Dataset documentation
     ├── model-cards/           # ML model documentation
     ├── runbooks/              # Operational runbooks

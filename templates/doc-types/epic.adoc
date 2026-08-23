@@ -1,0 +1,77 @@
+== Epic EPIC-NUMBER: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Priority:* `MEDIUM` +
+*Owner:* — +
+*Target Release:* — +
+*Date Started:* DATE +
+*Date Target:* —
+====
+
+// Status values: PLANNING | ACTIVE | ON-HOLD | COMPLETED | CANCELLED
+
+=== Objective
+
+What is the high-level goal of this epic? What business or technical problem does it address?
+
+=== Scope
+
+==== In Scope
+
+* [Capability or outcome 1]
+* [Capability or outcome 2]
+
+==== Out of Scope
+
+* [Explicitly excluded items]
+
+=== Timeline
+
+// PlantUML Gantt chart — rendered automatically by asciidoctor-diagram.
+// Adjust task names, durations, and dates to match your epic's plan.
+
+[plantuml, epic-EPIC-NUMBER-gantt, svg]
+....
+@startgantt
+printscale weekly
+Project starts DATE
+
+[Epic EPIC-NUMBER kick-off] lasts 1 week
+[Research & spike] lasts 2 weeks
+[Research & spike] starts at [Epic EPIC-NUMBER kick-off]'s end
+
+[Implementation] lasts 3 weeks
+[Implementation] starts at [Research & spike]'s end
+
+[Testing & review] lasts 1 week
+[Testing & review] starts at [Implementation]'s end
+
+[Release] lasts 1 week
+[Release] starts at [Testing & review]'s end
+@endgantt
+....
+
+=== Tasks
+
+List the tasks that make up this epic. Update this list as tasks are created.
+
+// Use arc42-c4 new task "Task Title" to create tasks, then link them here.
+
+[options="header", cols="1,3,1,1,1"]
+|===
+|#      |Title      |Class  |Assignee   |Status
+| —     | —         | —     | —         | —
+|===
+
+=== Success Criteria
+
+* [ ] [Measurable criterion 1]
+* [ ] [Measurable criterion 2]
+
+=== Links
+
+* *Related ADR:* —
+* *Related Experiment:* —
+* *Related TDR:* —

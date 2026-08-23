@@ -2,7 +2,7 @@
 set -euo pipefail
 eval "$($(dirname "$0")/arc42-c4-config)"
 
-## usage: arc42-c4 new <TYPE> <TITLE WORDS...> [-s SUPERSEDED]
+## usage: arc42-c4 new <TYPE> <TITLE WORDS...> [-s SUPERSEDED] [-c CLASS] [--notebook]
 ##
 ## Creates a new, numbered document of the given type. The TITLE WORDS are
 ## concatenated to form the document title. The file is opened for editing in
@@ -13,20 +13,32 @@ eval "$($(dirname "$0")/arc42-c4-config)"
 ##   adr         Architecture Decision Record  → adrs/
 ##   tdr         Technical Debt / Risk Record  → tdrs/
 ##   experiment  Tracked experiment            → experiments/
+##   epic        High-level project epic       → epics/
+##   task        Project / engineering task    → tasks/
+##   meeting     Meeting schedule & minutes    → meetings/
 ##   data-card   Dataset documentation card    → data-cards/
 ##   model-card  ML model documentation card   → model-cards/
 ##   runbook     Operational runbook           → runbooks/
 ##   guideline   Coding / design guideline     → guidelines/
 ##
 ## Options:
-##   -s NUM    Mark existing document NUM as superseded by the new document
-##             (only applies to adr and tdr types)
+##   -s NUM       Mark existing document NUM as superseded by the new document
+##                (only applies to adr and tdr types)
+##   -c CLASS     Set the task class (only applies to task and experiment types)
+##                Standard: BUG | FEAT | TASK | SPIKE | CHORE | EPIC
+##                Scientific: HYPO | DATA | CALIB | REPRO | META | ANLYS
+##   --notebook   Also create a companion Jupyter notebook (.ipynb) for experiments
 ##
 ## Examples:
 ##   arc42-c4 new adr "Use PostgreSQL as the operational database"
 ##   arc42-c4 new adr -s 3 "Switch to CockroachDB for global deployments"
 ##   arc42-c4 new tdr "Memory leak in NLP worker under high load"
+##   arc42-c4 new epic "Migrate to event-driven architecture"
+##   arc42-c4 new task -c FEAT "Add OAuth2 login flow"
+##   arc42-c4 new task -c HYPO "Validate latency improvement hypothesis"
 ##   arc42-c4 new experiment "Redis vs Memcached for session storage"
+##   arc42-c4 new experiment --notebook "Transformer fine-tuning benchmark"
+##   arc42-c4 new meeting "Sprint 12 Planning"
 ##   arc42-c4 new data-card "Raw User Events Dataset"
 ##   arc42-c4 new model-card "Sentiment Classifier v2"
 ##   arc42-c4 new runbook "Deploy to Kubernetes Production"
@@ -52,6 +64,9 @@ declare -A TYPE_DIRS=(
     [runbook]="runbooks"
     [guideline]="guidelines"
     [experiment]="experiments"
+    [epic]="epics"
+    [task]="tasks"
+    [meeting]="meetings"
 )
 
 # Arc42 aggregator files that get auto-updated with include:: directives
@@ -69,13 +84,19 @@ declare -A TYPE_STATUS=(
     [runbook]="ACTIVE"
     [guideline]="ACTIVE"
     [experiment]="ACTIVE"
+    [epic]="PLANNING"
+    [task]="TODO"
+    [meeting]="SCHEDULED"
 )
+
+# Valid task classes (standard + scientific)
+VALID_TASK_CLASSES="BUG FEAT TASK SPIKE CHORE EPIC HYPO DATA CALIB REPRO META ANLYS"
 
 # ── Parse type ────────────────────────────────────────────────────────────────
 if [ $# -eq 0 ]; then
     error "No document type given."
-    echo "Usage: arc42-c4 new <TYPE> <TITLE...> [-s NUM]" >&2
-    echo "Types: adr, tdr, data-card, model-card, runbook, guideline" >&2
+    echo "Usage: arc42-c4 new <TYPE> <TITLE...> [-s NUM] [-c CLASS] [--notebook]" >&2
+    echo "Types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline" >&2
     exit 1
 fi
 
@@ -84,19 +105,50 @@ shift
 
 if [ -z "${TYPE_DIRS[$TYPE]+x}" ]; then
     error "Unknown document type: '$TYPE'"
-    echo "Valid types: adr, tdr, data-card, model-card, runbook, guideline, experiment" >&2
+    echo "Valid types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline" >&2
     exit 1
 fi
 
-# ── Parse -s (superseded) option ─────────────────────────────────────────────
+# ── Parse options ─────────────────────────────────────────────────────────────
 SUPERSEDED=()
-while getopts "s:" opt; do
+TASK_CLASS="TASK"
+CREATE_NOTEBOOK=false
+
+# Pre-scan for --notebook (long option not handled by getopts)
+ARGS_FILTERED=()
+for arg in "$@"; do
+    if [ "$arg" = "--notebook" ]; then
+        CREATE_NOTEBOOK=true
+    else
+        ARGS_FILTERED+=("$arg")
+    fi
+done
+set -- "${ARGS_FILTERED[@]+"${ARGS_FILTERED[@]}"}"
+
+while getopts "s:c:" opt; do
     case "$opt" in
         s) SUPERSEDED+=("$OPTARG") ;;
+        c) TASK_CLASS="$OPTARG" ;;
         *) error "Unknown option: -$opt"; exit 1 ;;
     esac
 done
 shift $((OPTIND - 1))
+
+# ── Validate task class ───────────────────────────────────────────────────────
+if [ "$TYPE" = "task" ] || [ "$TYPE" = "experiment" ]; then
+    TASK_CLASS_UPPER=$(echo "$TASK_CLASS" | tr '[:lower:]' '[:upper:]')
+    VALID=false
+    for cls in $VALID_TASK_CLASSES; do
+        [ "$cls" = "$TASK_CLASS_UPPER" ] && VALID=true && break
+    done
+    if ! $VALID; then
+        error "Unknown class: '$TASK_CLASS'"
+        echo "Valid classes (Standard): BUG FEAT TASK SPIKE CHORE EPIC" >&2
+        echo "Valid classes (Scientific): HYPO DATA CALIB REPRO META ANLYS" >&2
+        exit 1
+    fi
+    TASK_CLASS="$TASK_CLASS_UPPER"
+fi
 
 # ── Validate title ────────────────────────────────────────────────────────────
 TITLE="$*"
@@ -149,13 +201,16 @@ if [ ! -f "$TEMPLATE" ]; then
     exit 1
 fi
 
-# Render template — substitute EXP-NUMBER BEFORE NUMBER to avoid partial match
+# Render template — substitute EXP-NUMBER and EPIC-NUMBER BEFORE NUMBER to avoid partial match
 sed \
     -e "s|EXP-NUMBER|EXP-${NEWID}|g" \
+    -e "s|EPIC-NUMBER|EPIC-${NEWID}|g" \
     -e "s|NUMBER|${NEWNUM}|g" \
     -e "s|TITLE|${TITLE}|g" \
     -e "s|DATE|${DATE}|g" \
     -e "s|STATUS|${STATUS}|g" \
+    -e "s|CLASS|${TASK_CLASS}|g" \
+    -e "s|SLUG|${SLUG}|g" \
     "$TEMPLATE" > "$DSTFILE"
 
 # ── Handle supersession (-s flag) ─────────────────────────────────────────────
@@ -200,6 +255,31 @@ if [ -n "${TYPE_AGGREGATORS[$TYPE]+x}" ]; then
             { print }
         ' "$AGGREGATOR" > "$TMPFILE"
         mv "$TMPFILE" "$AGGREGATOR"
+    fi
+fi
+
+# ── Optionally create companion Jupyter notebook (experiments only) ───────────
+if [ "$TYPE" = "experiment" ] && $CREATE_NOTEBOOK; then
+    NOTEBOOK_TEMPLATE="$arc42c4_template_dir/doc-types/experiment.ipynb"
+    NOTEBOOK_CUSTOM="$DOCS_DIR/templates/experiment.ipynb"
+    [ -f "$NOTEBOOK_CUSTOM" ] && NOTEBOOK_TEMPLATE="$NOTEBOOK_CUSTOM"
+
+    if [ -f "$NOTEBOOK_TEMPLATE" ]; then
+        NOTEBOOK_FILE="$SUBDIR/${NEWID}-${SLUG}.ipynb"
+        sed \
+            -e "s|EXP-NUMBER|EXP-${NEWID}|g" \
+            -e "s|NUMBER-SLUG|${NEWID}-${SLUG}|g" \
+            -e "s|NUMBER|${NEWNUM}|g" \
+            -e "s|TITLE|${TITLE}|g" \
+            -e "s|DATE|${DATE}|g" \
+            -e "s|SLUG|${SLUG}|g" \
+            "$NOTEBOOK_TEMPLATE" > "$NOTEBOOK_FILE"
+        success "Notebook: $NOTEBOOK_FILE"
+        # Record link in the adoc report
+        echo "" >> "$DSTFILE"
+        echo "// Companion notebook: link:${NEWID}-${SLUG}.ipynb[Jupyter Notebook]" >> "$DSTFILE"
+    else
+        echo "[arc42-c4] WARNING: Notebook template not found at $NOTEBOOK_TEMPLATE — skipping." >&2
     fi
 fi
 

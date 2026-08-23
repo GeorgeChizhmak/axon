@@ -1,0 +1,53 @@
+== Task NUMBER: TITLE
+
+[NOTE]
+====
+*Status:* `STATUS` +
+*Class:* `CLASS` +
+*Priority:* `MEDIUM` +
+*Assignee:* — +
+*Epic:* — +
+*Date Created:* DATE +
+*Date Due:* —
+====
+
+// Task Classes (Standard):
+//   BUG   — Flaws, errors, or unexpected behavior in existing code.
+//   FEAT  — New features, capabilities, or functional enhancements.
+//   TASK  — Routine engineering work (refactoring, dependencies, documentation).
+//   SPIKE — Research, architectural design, or proof-of-concept exploration.
+//   CHORE — Operational updates (CI/CD fixes, package updates, build scripts).
+//   EPIC  — Large, high-level objectives that split into multiple sub-tasks.
+//
+// Task Classes (Scientific):
+//   HYPO  — Hypothesis Testing: designing and running experiments to validate assumptions.
+//   DATA  — Data Engineering: collection, cleaning, curation, labeling, or synthesis.
+//   CALIB — Calibration & Alignment: tuning instruments, models, sensors, or hyperparameters.
+//   REPRO — Reproducibility Check: re-running a previous experiment to verify results.
+//   META  — Meta-Analysis / Review: reviewing literature or consolidating experimental data.
+//   ANLYS — Analysis / Post-Processing: statistical processing, plotting, or analytical modelling.
+
+=== Description
+
+What is this task about? What problem does it solve or what capability does it add?
+
+=== Acceptance Criteria
+
+* [ ] [Criterion 1: Describe a concrete, verifiable condition that must be met.]
+* [ ] [Criterion 2: ...]
+* [ ] [Criterion 3: ...]
+
+=== Implementation Notes
+
+Any technical approach, constraints, or considerations to be aware of while working on this task.
+
+// For BUG class: include Steps to Reproduce, Expected vs Actual behavior.
+// For SPIKE class: include Research Questions and a time-box limit.
+// For HYPO/DATA/CALIB/REPRO/META/ANLYS classes: link to the related experiment.
+
+=== Links
+
+* *Epic:* —
+* *Related ADR:* —
+* *Related Experiment:* —
+* *PR / Branch:* —
