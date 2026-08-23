@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
-eval "$($(dirname "$0")/axon-config)"
+
+# Establish the core execution paths
+axon_bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+eval "$("$axon_bin_dir/axon-config")"
 
 ## usage: axon help [COMMAND]
 ##
