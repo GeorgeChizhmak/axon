@@ -7,8 +7,8 @@ eval "$($(dirname "$0")/axon-config)"
 ## Rebuilds the full architecture documentation from source files:
 ##
 ##   1. Cleans stale diagram caches
-##   2. Renders the master .adoc → HTML (with inline diagrams via Kroki.io)
-##   3. Renders the master .adoc → PDF (with inline diagrams via Kroki.io)
+##   2. Renders the master .adoc → HTML (with local diagrams via PlantUML)
+##   3. Renders the master .adoc → PDF (with local diagrams via PlantUML)
 ##
 ## Options:
 ##   --html        Render HTML only
@@ -17,7 +17,8 @@ eval "$($(dirname "$0")/axon-config)"
 ##   --skip-clean  Skip cleaning stale diagram caches
 ##
 ## Prerequisites (install once):
-##   gem install asciidoctor asciidoctor-pdf asciidoctor-kroki
+##   gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
+##   Install structurizr-rs binary as 'structurizr-rs'
 ##
 ## Example:
 ##   axon generate
@@ -84,9 +85,14 @@ printf "\n"
 check_prereqs() {
     local missing=0
 
+    if ! command -v structurizr-rs >/dev/null 2>&1; then
+        error "'structurizr-rs' not found. Please compile/install it first."
+        missing=1
+    fi
+
     if $DO_HTML || $DO_PDF; then
         if ! command -v asciidoctor >/dev/null 2>&1; then
-            error "'asciidoctor' not found. Run: gem install asciidoctor asciidoctor-kroki"
+            error "'asciidoctor' not found. Run: gem install asciidoctor asciidoctor-diagram"
             missing=1
         fi
     fi
@@ -115,10 +121,35 @@ clean_stale_svgs() {
         stale_count=$(( stale_count + 1 ))
     fi
 
+    # Wipe any exported .puml files in diagrams/
+    if [ -d "$DIAGRAMS_DIR" ]; then
+        rm -f "$DIAGRAMS_DIR"/*.puml
+    fi
+
     if [ "$stale_count" -gt 0 ]; then
         success "Removed $stale_count stale cache directory."
     else
         info "No stale files found."
+    fi
+}
+
+# ── 2.5. Export C4 diagrams from workspace.dsl ──────────────────────────────
+export_diagrams() {
+    info "Exporting C4 diagrams from workspace.dsl..."
+    local dsl_file="$DOCS_DIR/workspace.dsl"
+    if [ -f "$dsl_file" ]; then
+        structurizr-rs export --workspace "$dsl_file" --format plantuml --output "$DIAGRAMS_DIR"
+        # Inject SHOW_LEGEND() before @enduml in all exported .puml files
+        for f in "$DIAGRAMS_DIR"/*.puml; do
+            if [ -f "$f" ]; then
+                if ! grep -q "SHOW_LEGEND()" "$f"; then
+                    perl -pi -e 's/\@enduml/SHOW_LEGEND()\n\@enduml/g' "$f"
+                fi
+            fi
+        done
+        success "C4 diagrams exported to $DIAGRAMS_DIR/"
+    else
+        warn "No workspace.dsl found in $DOCS_DIR. Skipping C4 diagram export."
     fi
 }
 
@@ -128,7 +159,7 @@ render_html() {
 
     local out="$DOCS_DIR/${PROJECT_BASENAME}_architecture.html"
     asciidoctor \
-        -r asciidoctor-kroki \
+        -r asciidoctor-diagram \
         -a allow-uri-read \
         "$MASTER_ADOC" \
         -o "$out"
@@ -142,7 +173,7 @@ render_pdf() {
 
     local out="$DOCS_DIR/${PROJECT_BASENAME}_architecture.pdf"
     asciidoctor-pdf \
-        -r asciidoctor-kroki \
+        -r asciidoctor-diagram \
         -a allow-uri-read \
         "$MASTER_ADOC" \
         -o "$out"
@@ -154,6 +185,7 @@ render_pdf() {
 check_prereqs
 
 $DO_CLEAN  && clean_stale_svgs
+export_diagrams
 $DO_HTML   && render_html
 $DO_PDF    && render_pdf
 

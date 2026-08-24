@@ -3,17 +3,15 @@
 
 // TODO: Describe the static decomposition of the system into building blocks
 // (modules, components, subsystems, packages, classes, etc.).
-// The diagrams below are rendered directly from workspace.dsl via Kroki.io —
-// no local export step or Docker is required.
+// The diagrams below are exported from workspace.dsl via structurizr-rs.
 
 === Level 1: System Context
 
-// C4 System Context diagram — rendered by Kroki.io from workspace.dsl.
+// C4 System Context diagram — exported from workspace.dsl.
 
-[structurizr]
+[plantuml]
 ....
-include::../workspace.dsl[]
-// view: SystemContext
+include::../diagrams/SystemContext.puml[]
 ....
 
 [%autowidth, cols="^1,4"]
@@ -28,12 +26,11 @@ include::../workspace.dsl[]
 
 === Level 2: Container Diagram
 
-// C4 Container diagram — rendered by Kroki.io from workspace.dsl.
+// C4 Container diagram — exported from workspace.dsl.
 
-[structurizr]
+[plantuml]
 ....
-include::../workspace.dsl[]
-// view: ContainerDiagram
+include::../diagrams/ContainerDiagram.puml[]
 ....
 
 [%autowidth, cols="^1,4"]

@@ -3,7 +3,7 @@
 
 // TODO: Describe the behaviour of the system at runtime.
 // Show important scenarios and how the building blocks interact to fulfil them.
-// Sequence diagrams are rendered via Kroki.io — no local PlantUML install needed.
+// Sequence diagrams are rendered via asciidoctor-diagram.
 
 === Scenario 1: [Name the Primary Happy-Path Scenario]
 

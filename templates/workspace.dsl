@@ -17,7 +17,9 @@ workspace "PROJECT_NAME" "Brief description of the system and its purpose." {
             // TODO: Add your containers below. Examples:
             frontend   = container "Frontend"    "User interface."              "React / Vue"
             api        = container "API"         "Backend application API."     "FastAPI / Express"
-            db         = container "Database"    "Persistent data store."       "PostgreSQL"     "Database"
+            db         = container "Database"    "Persistent data store."       "PostgreSQL" {
+                tags "Database"
+            }
         }
 
         // ── Relationships ─────────────────────────────────────────────────────
@@ -60,26 +62,26 @@ workspace "PROJECT_NAME" "Brief description of the system and its purpose." {
         // ── Styles ────────────────────────────────────────────────────────────
         styles {
             element "Person" {
-                background #08427b
-                color #ffffff
+                background "#08427b"
+                color "#ffffff"
                 shape Person
             }
             element "Software System" {
-                background #1168bd
-                color #ffffff
+                background "#1168bd"
+                color "#ffffff"
             }
             element "External" {
-                background #999999
-                color #ffffff
+                background "#999999"
+                color "#ffffff"
             }
             element "Container" {
-                background #438dd5
-                color #ffffff
+                background "#438dd5"
+                color "#ffffff"
             }
             element "Database" {
                 shape Cylinder
-                background #205c94
-                color #ffffff
+                background "#205c94"
+                color "#ffffff"
             }
             relationship "Relationship" {
                 routing Orthogonal

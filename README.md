@@ -67,9 +67,19 @@ make install PREFIX=~/.local
 
 **Prerequisites (install once):**
 
+1. Install **Asciidoctor** and **Asciidoctor Diagram**:
 ```bash
-gem install asciidoctor asciidoctor-pdf asciidoctor-kroki
+gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
 ```
+
+2. Install **structurizr-rs**:
+```bash
+git clone https://github.com/Helms-AI/structurizr-rs.git
+cd structurizr-rs
+cargo build --release
+install -m755 target/release/structurizr ~/.local/bin/structurizr-rs
+```
+Ensure `~/.local/bin` is in your `PATH`.
 
 ### macOS
 
@@ -239,7 +249,7 @@ Tests run entirely in a temp directory — no Docker required.
 ## Design Decisions
 
 - **Modelled on `adr-tools`**: Same dispatcher + sub-script + template pattern for maximum simplicity and hackability
-- **AsciiDoc + Kroki.io**: Diagrams rendered server-side — no local Docker, PlantUML, or Java install required. Diagrams are dynamically loaded or fully inlined in the generated documents (zero clutter in the workspace/git).
+- **AsciiDoc + structurizr-rs + PlantUML**: C4 model diagrams are defined in `workspace.dsl` and exported to PlantUML format locally via `structurizr-rs`. The diagrams are included and rendered using `asciidoctor-diagram`.
 - **Auto-include injection**: New ADRs and TDRs are automatically wired into the Arc42 aggregator sections via `awk`
 - **Zero local toolchain dependencies**: Pure Bash + simple Ruby gem list — works out of the box on macOS and Linux with `bash` 4+, `sed`, `awk`, `find`
 - **Cross-platform**: No `grep -P` (PCRE), no `sed -i` without extension; BSD and GNU userland both supported; `declare -A` replaced with portable `case` helpers

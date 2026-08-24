@@ -3,18 +3,15 @@
 
 // TODO: Describe what is inside the system boundary (PROJECT_NAME) and what is outside it.
 // Identify all external systems, users, and data flows.
-// The System Context diagram below is rendered directly from workspace.dsl via Kroki.io.
+// The System Context diagram below is exported from workspace.dsl via structurizr-rs and rendered via asciidoctor-diagram.
 
 === Business Context
 
-// The C4 System Context diagram is rendered by Kroki.io from your workspace.dsl.
-// No local tool or Docker is required — the DSL is sent to kroki.io at build time.
-// To use a self-hosted Kroki instance, set :kroki-server-url: in arc42/_config.adoc.
+// The C4 System Context diagram is exported from your workspace.dsl and rendered locally via PlantUML.
 
-[structurizr]
+[plantuml]
 ....
-include::../workspace.dsl[]
-// view: SystemContext
+include::../diagrams/SystemContext.puml[]
 ....
 
 [%autowidth, cols="^1,4"]

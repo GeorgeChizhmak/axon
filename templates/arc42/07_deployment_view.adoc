@@ -2,8 +2,7 @@
 == Deployment View
 
 // TODO: Describe where and how the system is deployed.
-// The Deployment diagram below is rendered directly from workspace.dsl via Kroki.io —
-// no local export step or Docker is required.
+// The Deployment diagram below is exported from workspace.dsl via structurizr-rs.
 
 === Infrastructure Overview
 
@@ -20,12 +19,11 @@
 
 === Deployment Diagram
 
-// C4 Deployment diagram — rendered by Kroki.io from workspace.dsl.
+// C4 Deployment diagram — exported from workspace.dsl.
 
-[structurizr]
+[plantuml]
 ....
-include::../workspace.dsl[]
-// view: Local
+include::../diagrams/LocalDeployment.puml[]
 ....
 
 [%autowidth, cols="^1,4"]
