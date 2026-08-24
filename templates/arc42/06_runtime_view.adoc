@@ -9,7 +9,7 @@
 
 // TODO: Describe the most important runtime scenario — the common case.
 
-[kroki, plantuml, puml]
+[plantuml]
 ....
 @startuml
 ' TODO: Describe the sequence of calls for the primary use case.
@@ -27,6 +27,15 @@ db --> svc: [Data]
 svc --> api: [Response]
 api --> fe: [JSON response]
 fe --> user: [UI update]
+
+legend right
+  | Symbol | Meaning |
+  | -> | Synchronous call |
+  | --> | Return / response |
+  | actor | Human user |
+  | participant | System component |
+  | database | Persistent data store |
+endlegend
 @enduml
 ....
 
@@ -34,9 +43,17 @@ fe --> user: [UI update]
 
 // TODO: Describe an important error scenario or edge case.
 
-[kroki, plantuml, puml]
+[plantuml]
 ....
 @startuml
 ' TODO: Describe the error flow.
+legend right
+  | Symbol | Meaning |
+  | -> | Synchronous call |
+  | --> | Return / response |
+  | [x] | Error / failure |
+  | actor | Human user |
+  | participant | System component |
+endlegend
 @enduml
 ....

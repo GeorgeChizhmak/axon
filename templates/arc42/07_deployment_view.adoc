@@ -22,11 +22,21 @@
 
 // C4 Deployment diagram — rendered by Kroki.io from workspace.dsl.
 
-[kroki, structurizr, puml]
+[structurizr]
 ....
 include::../workspace.dsl[]
 // view: Local
 ....
+
+[%autowidth, cols="^1,4"]
+|===
+| Symbol | Meaning
+
+| 🖥️ Node box | A deployment node (physical machine, VM, container host, cloud region, etc.)
+| 🔷 Blue box (Container) | A deployable unit running inside a node
+| 💾 Cylinder | A database or persistent data store
+| → Arrow | A network connection or data flow between nodes
+|===
 
 === Infrastructure Components
 

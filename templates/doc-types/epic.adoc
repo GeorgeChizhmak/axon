@@ -53,6 +53,15 @@ Project starts DATE
 @endgantt
 ....
 
+[%autowidth, cols="^1,4"]
+|===
+| Symbol | Meaning
+
+| ▬ Bar | A task spanning from its start to end date
+| → Arrow | A dependency (task B starts after task A)
+| _printscale weekly_ | Each column on the horizontal axis represents one week
+|===
+
 === Tasks
 
 List the tasks that make up this epic. Update this list as tasks are created.

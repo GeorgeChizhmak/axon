@@ -10,27 +10,48 @@
 
 // C4 System Context diagram — rendered by Kroki.io from workspace.dsl.
 
-[kroki, structurizr, puml]
+[structurizr]
 ....
 include::../workspace.dsl[]
 // view: SystemContext
 ....
 
+[%autowidth, cols="^1,4"]
+|===
+| Symbol | Meaning
+
+| 🟦 Blue box (Person) | A human user or role that interacts with the system
+| 🟦 Blue box (System) | The software system being described
+| ⬜ Grey box | An external software system or third-party dependency
+| → Arrow | A relationship or data flow between elements
+|===
+
 === Level 2: Container Diagram
 
 // C4 Container diagram — rendered by Kroki.io from workspace.dsl.
 
-[kroki, structurizr, puml]
+[structurizr]
 ....
 include::../workspace.dsl[]
 // view: ContainerDiagram
 ....
 
+[%autowidth, cols="^1,4"]
+|===
+| Symbol | Meaning
+
+| 🟦 Blue box (Person) | A human user or role that interacts with the system
+| 🟦 Blue box (System) | The software system in scope
+| 🔷 Blue box (Container) | A separately deployable unit (app, service, database, etc.)
+| ⬜ Grey box | An external software system or third-party dependency
+| → Arrow | A relationship or data flow between elements
+|===
+
 === Level 3: Component Diagram (optional)
 
 // TODO: If needed, break down individual containers into their internal components.
 // Focus on containers where the internal structure is non-obvious.
-// Add a [kroki, structurizr, puml] block here once you have a component view in workspace.dsl.
+// Add a [structurizr] block here once you have a component view in workspace.dsl.
 
 === Key Building Blocks
 

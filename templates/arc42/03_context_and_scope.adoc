@@ -11,11 +11,21 @@
 // No local tool or Docker is required — the DSL is sent to kroki.io at build time.
 // To use a self-hosted Kroki instance, set :kroki-server-url: in arc42/_config.adoc.
 
-[kroki, structurizr, puml]
+[structurizr]
 ....
 include::../workspace.dsl[]
 // view: SystemContext
 ....
+
+[%autowidth, cols="^1,4"]
+|===
+| Symbol | Meaning
+
+| 🟦 Blue box (Person) | A human user or role that interacts with the system
+| 🟦 Blue box (System) | The software system being described
+| ⬜ Grey box | An external software system or third-party dependency
+| → Arrow | A relationship or data flow between elements
+|===
 
 // TODO: Annotate the diagram or describe the key actors and external systems below.
 

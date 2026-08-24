@@ -10,8 +10,8 @@ workspace "PROJECT_NAME" "Brief description of the system and its purpose." {
 
         // ── Primary System ────────────────────────────────────────────────────
         system = softwareSystem "PROJECT_NAME" "Brief description of what this system does." {
-            !docs arc42
-            !adrs adrs
+            // !docs arc42
+            // !adrs adrs
 
             // ── Containers (deployable units) ─────────────────────────────────
             // TODO: Add your containers below. Examples:

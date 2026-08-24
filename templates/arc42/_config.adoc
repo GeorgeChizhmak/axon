@@ -19,4 +19,7 @@
 // "adaptive" automatically uses GET for short diagrams and POST for long ones
 :kroki-http-method: adaptive
 // Default output format for all Kroki blocks
-:kroki-default-format: puml
+:kroki-default-format: svg
+// Option to inline SVGs directly in HTML/PDF outputs
+:kroki-default-options: inline
+:allow-uri-read:
