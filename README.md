@@ -68,8 +68,7 @@ make install PREFIX=~/.local
 **Prerequisites (install once):**
 
 ```bash
-gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
-# Docker must be running for `axon generate` (DSL export step)
+gem install asciidoctor asciidoctor-pdf asciidoctor-kroki
 ```
 
 ### macOS
@@ -212,16 +211,16 @@ cp /usr/local/share/axon/templates/doc-types/adr.adoc documentation/templates/ad
 ## Generating Documentation
 
 ```bash
-# Full build (requires Docker for DSL export)
+# Full build (renders all HTML and PDF reports with inline diagrams)
 axon generate
 
-# HTML only, skip DSL export (no Docker needed)
-axon generate --html --skip-dsl
+# HTML only
+axon generate --html
 
 # PDF only
 axon generate --pdf
 
-# Skip cleaning stale SVG caches
+# Skip cleaning stale caches
 axon generate --skip-clean
 ```
 
@@ -240,9 +239,9 @@ Tests run entirely in a temp directory — no Docker required.
 ## Design Decisions
 
 - **Modelled on `adr-tools`**: Same dispatcher + sub-script + template pattern for maximum simplicity and hackability
-- **AsciiDoc + Kroki.io**: Diagrams rendered server-side — no local PlantUML install required for HTML builds
+- **AsciiDoc + Kroki.io**: Diagrams rendered server-side — no local Docker, PlantUML, or Java install required. Diagrams are dynamically loaded or fully inlined in the generated documents (zero clutter in the workspace/git).
 - **Auto-include injection**: New ADRs and TDRs are automatically wired into the Arc42 aggregator sections via `awk`
-- **Zero framework dependencies**: Pure Bash — works on macOS and Linux with `bash` 4+, `sed`, `awk`, `find`
+- **Zero local toolchain dependencies**: Pure Bash + simple Ruby gem list — works out of the box on macOS and Linux with `bash` 4+, `sed`, `awk`, `find`
 - **Cross-platform**: No `grep -P` (PCRE), no `sed -i` without extension; BSD and GNU userland both supported; `declare -A` replaced with portable `case` helpers
 
 ---

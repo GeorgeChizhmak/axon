@@ -3,23 +3,21 @@
 
 // TODO: Describe what is inside the system boundary (PROJECT_NAME) and what is outside it.
 // Identify all external systems, users, and data flows.
-// Include a C4 System Context diagram rendered from workspace.dsl.
+// The System Context diagram below is rendered directly from workspace.dsl via Kroki.io.
 
 === Business Context
 
-// TODO: Describe the business-level context: stakeholders, external systems, and key interactions.
+// The C4 System Context diagram is rendered by Kroki.io from your workspace.dsl.
+// No local tool or Docker is required — the DSL is sent to kroki.io at build time.
+// To use a self-hosted Kroki instance, set :kroki-server-url: in arc42/_config.adoc.
 
-[plantuml, business-context, svg]
+[kroki, structurizr, puml]
 ....
-@startuml
-!include <C4Context>
-' TODO: Replace this with your actual system context.
-' Or use the Structurizr export: diagrams/SystemContext.puml
-Person(user, "User", "Primary actor")
-System(system, "PROJECT_NAME", "The system under description")
-Rel(user, system, "Uses")
-@enduml
+include::../workspace.dsl[]
+// view: SystemContext
 ....
+
+// TODO: Annotate the diagram or describe the key actors and external systems below.
 
 === Technical Context
 

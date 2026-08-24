@@ -8,6 +8,15 @@
 // where are images located?
 :imagesdir: ./diagrams
 
-// Diagram rendering via Kroki.io (no local PlantUML install needed)
-:diagram-server-url: https://kroki.io
-:diagram-server-type: kroki_io
+// ── Diagram rendering via Kroki.io ────────────────────────────────────────────
+// All diagram blocks (plantuml, structurizr, etc.) are rendered server-side by
+// Kroki.io — no local PlantUML, Graphviz, or Docker install is required.
+//
+// Override the server URL to point at a self-hosted Kroki instance if needed:
+//   :kroki-server-url: http://localhost:8000
+//
+:kroki-server-url: https://kroki.io
+// "adaptive" automatically uses GET for short diagrams and POST for long ones
+:kroki-http-method: adaptive
+// Default output format for all Kroki blocks
+:kroki-default-format: puml

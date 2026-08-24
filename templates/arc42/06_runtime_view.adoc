@@ -3,14 +3,13 @@
 
 // TODO: Describe the behaviour of the system at runtime.
 // Show important scenarios and how the building blocks interact to fulfil them.
-// Use sequence diagrams or activity diagrams.
+// Sequence diagrams are rendered via Kroki.io — no local PlantUML install needed.
 
 === Scenario 1: [Name the Primary Happy-Path Scenario]
 
 // TODO: Describe the most important runtime scenario — the common case.
-// Use a PlantUML sequence diagram.
 
-[plantuml, runtime-scenario-1, svg]
+[kroki, plantuml, puml]
 ....
 @startuml
 ' TODO: Describe the sequence of calls for the primary use case.
@@ -35,7 +34,7 @@ fe --> user: [UI update]
 
 // TODO: Describe an important error scenario or edge case.
 
-[plantuml, runtime-scenario-2, svg]
+[kroki, plantuml, puml]
 ....
 @startuml
 ' TODO: Describe the error flow.

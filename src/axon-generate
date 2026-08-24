@@ -6,25 +6,22 @@ eval "$($(dirname "$0")/axon-config)"
 ##
 ## Rebuilds the full architecture documentation from source files:
 ##
-##   1. Exports workspace.dsl → PlantUML via Docker + Structurizr CLI
-##   2. Cleans stale asciidoctor-diagram SVG caches
-##   3. Renders the master .adoc → HTML
-##   4. Renders the master .adoc → PDF
+##   1. Cleans stale diagram caches
+##   2. Renders the master .adoc → HTML (with inline diagrams via Kroki.io)
+##   3. Renders the master .adoc → PDF (with inline diagrams via Kroki.io)
 ##
 ## Options:
 ##   --html        Render HTML only
 ##   --pdf         Render PDF only
 ##   --all         Render both HTML and PDF (default)
-##   --skip-dsl    Skip the Structurizr DSL export step (no Docker needed)
-##   --skip-clean  Skip cleaning stale SVG / diagram caches
+##   --skip-clean  Skip cleaning stale diagram caches
 ##
 ## Prerequisites (install once):
-##   gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
-##   Docker must be running (unless --skip-dsl is given)
+##   gem install asciidoctor asciidoctor-pdf asciidoctor-kroki
 ##
 ## Example:
 ##   axon generate
-##   axon generate --html --skip-dsl
+##   axon generate --html
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -40,7 +37,6 @@ error()   { printf "${RED}[axon] \xe2\x9c\x97${NC} %s\n" "$*" >&2; }
 # ── Parse flags ───────────────────────────────────────────────────────────────
 DO_HTML=true
 DO_PDF=true
-DO_DSL=true
 DO_CLEAN=true
 EXPLICIT_FORMAT=false
 
@@ -49,11 +45,12 @@ for arg in "$@"; do
         --html)       DO_HTML=true;  DO_PDF=false; EXPLICIT_FORMAT=true ;;
         --pdf)        DO_PDF=true;   DO_HTML=false; EXPLICIT_FORMAT=true ;;
         --all)        DO_HTML=true;  DO_PDF=true ;;
-        --skip-dsl)   DO_DSL=false ;;
+        --skip-dsl)   # Kept for backward compatibility but deprecated (no-op since Docker is removed)
+                      warn "--skip-dsl option is deprecated and no longer needed." ;;
         --skip-clean) DO_CLEAN=false ;;
         *)
             error "Unknown option: $arg"
-            printf "Usage: axon generate [--html] [--pdf] [--all] [--skip-dsl] [--skip-clean]\n" >&2
+            printf "Usage: axon generate [--html] [--pdf] [--all] [--skip-clean]\n" >&2
             exit 1
             ;;
     esac
@@ -87,19 +84,9 @@ printf "\n"
 check_prereqs() {
     local missing=0
 
-    if $DO_DSL; then
-        if ! command -v docker >/dev/null 2>&1; then
-            error "Docker is not installed or not in PATH. Use --skip-dsl to skip DSL export."
-            missing=1
-        elif ! docker info >/dev/null 2>&1; then
-            error "Docker daemon is not running. Use --skip-dsl to skip DSL export."
-            missing=1
-        fi
-    fi
-
     if $DO_HTML || $DO_PDF; then
         if ! command -v asciidoctor >/dev/null 2>&1; then
-            error "'asciidoctor' not found. Run: gem install asciidoctor asciidoctor-diagram"
+            error "'asciidoctor' not found. Run: gem install asciidoctor asciidoctor-kroki"
             missing=1
         fi
     fi
@@ -116,77 +103,47 @@ check_prereqs() {
     fi
 }
 
-# ── 2. Export Structurizr DSL → PlantUML ──────────────────────────────────────
-export_dsl() {
-    info "Exporting Structurizr DSL → PlantUML..."
-
-    local workspace_dsl="$DOCS_DIR/workspace.dsl"
-    if [ ! -f "$workspace_dsl" ]; then
-        warn "workspace.dsl not found at $workspace_dsl — skipping DSL export."
-        return 0
-    fi
-
-    mkdir -p "$DIAGRAMS_DIR"
-
-    # Mount the project root so that the !docs and !adrs directives resolve correctly
-    PROJECT_ROOT="$(cd "$DOCS_DIR/.." && pwd)"
-
-    docker run --rm \
-        -v "${PROJECT_ROOT}:/usr/local/structurizr" \
-        structurizr/structurizr export \
-        -workspace "/usr/local/structurizr/${DOCS_DIR#"$PROJECT_ROOT"/}/workspace.dsl" \
-        -format plantuml/structurizr \
-        -output "/usr/local/structurizr/${DOCS_DIR#"$PROJECT_ROOT"/}/diagrams"
-
-    success "PlantUML files written to $DIAGRAMS_DIR/"
-}
-
-# ── 3. Clean stale SVG caches ─────────────────────────────────────────────────
+# ── 2. Clean stale diagram caches ─────────────────────────────────────────────
 clean_stale_svgs() {
     info "Cleaning stale diagram caches..."
 
     local stale_count=0
 
-    # Remove auto-generated SVGs from asciidoctor-diagram
-    # Use find with -exec for portability (avoids process substitution with -print0)
-    while IFS= read -r f; do
-        rm -f "$f"
-        stale_count=$(( stale_count + 1 ))
-    done < <(find "$DIAGRAMS_DIR" -maxdepth 1 -name "diag-*.svg" 2>/dev/null)
-
-    # Wipe the .asciidoctor diagram cache directory
-    if [ -d "$DOCS_DIR/.asciidoctor/diagram" ]; then
-        rm -rf "$DOCS_DIR/.asciidoctor/diagram"
+    # Wipe the .asciidoctor diagram cache directory if it exists
+    if [ -d "$DOCS_DIR/.asciidoctor" ]; then
+        rm -rf "$DOCS_DIR/.asciidoctor"
         stale_count=$(( stale_count + 1 ))
     fi
 
     if [ "$stale_count" -gt 0 ]; then
-        success "Removed $stale_count stale file(s)."
+        success "Removed $stale_count stale cache directory."
     else
         info "No stale files found."
     fi
 }
 
-# ── 4. Render HTML ────────────────────────────────────────────────────────────
+# ── 3. Render HTML ────────────────────────────────────────────────────────────
 render_html() {
     info "Rendering HTML..."
 
     local out="$DOCS_DIR/${PROJECT_BASENAME}_architecture.html"
     asciidoctor \
-        -r asciidoctor-diagram \
+        -r asciidoctor-kroki \
+        -a allow-uri-read \
         "$MASTER_ADOC" \
         -o "$out"
 
     success "HTML → $out"
 }
 
-# ── 5. Render PDF ─────────────────────────────────────────────────────────────
+# ── 4. Render PDF ─────────────────────────────────────────────────────────────
 render_pdf() {
     info "Rendering PDF..."
 
     local out="$DOCS_DIR/${PROJECT_BASENAME}_architecture.pdf"
     asciidoctor-pdf \
-        -r asciidoctor-diagram \
+        -r asciidoctor-kroki \
+        -a allow-uri-read \
         "$MASTER_ADOC" \
         -o "$out"
 
@@ -196,7 +153,6 @@ render_pdf() {
 # ── Main ──────────────────────────────────────────────────────────────────────
 check_prereqs
 
-$DO_DSL    && export_dsl
 $DO_CLEAN  && clean_stale_svgs
 $DO_HTML   && render_html
 $DO_PDF    && render_pdf
@@ -205,5 +161,4 @@ printf "\n"
 success "Build complete. Files ready to commit:"
 $DO_HTML && printf "    %s/%s_architecture.html\n" "$DOCS_DIR" "$PROJECT_BASENAME"
 $DO_PDF  && printf "    %s/%s_architecture.pdf\n"  "$DOCS_DIR" "$PROJECT_BASENAME"
-$DO_DSL  && printf "    %s/\n" "$DIAGRAMS_DIR"
 printf "\n"

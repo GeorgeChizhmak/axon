@@ -2,7 +2,8 @@
 == Deployment View
 
 // TODO: Describe where and how the system is deployed.
-// Include the C4 Deployment diagram from your workspace.dsl.
+// The Deployment diagram below is rendered directly from workspace.dsl via Kroki.io —
+// no local export step or Docker is required.
 
 === Infrastructure Overview
 
@@ -19,11 +20,13 @@
 
 === Deployment Diagram
 
-// TODO: Include the exported C4 Deployment diagram.
-// After running `axon generate`, the exported diagram will be in diagrams/.
+// C4 Deployment diagram — rendered by Kroki.io from workspace.dsl.
 
-// Example:
-// image::diagrams/DeploymentDiagram.svg[Deployment Diagram]
+[kroki, structurizr, puml]
+....
+include::../workspace.dsl[]
+// view: Local
+....
 
 === Infrastructure Components
 

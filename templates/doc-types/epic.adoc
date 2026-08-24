@@ -29,10 +29,10 @@ What is the high-level goal of this epic? What business or technical problem doe
 
 === Timeline
 
-// PlantUML Gantt chart — rendered automatically by asciidoctor-diagram.
+// PlantUML Gantt chart — rendered automatically by asciidoctor-kroki.
 // Adjust task names, durations, and dates to match your epic's plan.
 
-[plantuml, epic-EPIC-NUMBER-gantt, svg]
+[plantuml]
 ....
 @startgantt
 printscale weekly
