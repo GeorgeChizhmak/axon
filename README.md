@@ -72,6 +72,18 @@ gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
 # Docker must be running for `axon generate` (DSL export step)
 ```
 
+### macOS
+
+macOS ships with **Bash 3.2** (GPL restriction). Axon requires **Bash 4+** for full compatibility. Install a modern Bash via Homebrew:
+
+```bash
+brew install bash
+# Verify:
+bash --version   # should show 5.x
+```
+
+> **Note:** Axon scripts use `#!/usr/bin/env bash`, so as long as Homebrew bash is ahead of `/bin/bash` on your `PATH`, everything works without changing your default shell.
+
 ### Uninstall
 
 ```bash
@@ -230,7 +242,8 @@ Tests run entirely in a temp directory — no Docker required.
 - **Modelled on `adr-tools`**: Same dispatcher + sub-script + template pattern for maximum simplicity and hackability
 - **AsciiDoc + Kroki.io**: Diagrams rendered server-side — no local PlantUML install required for HTML builds
 - **Auto-include injection**: New ADRs and TDRs are automatically wired into the Arc42 aggregator sections via `awk`
-- **Zero framework dependencies**: Pure Bash — works on any Unix system with `bash`, `sed`, `awk`, `find`
+- **Zero framework dependencies**: Pure Bash — works on macOS and Linux with `bash` 4+, `sed`, `awk`, `find`
+- **Cross-platform**: No `grep -P` (PCRE), no `sed -i` without extension; BSD and GNU userland both supported; `declare -A` replaced with portable `case` helpers
 
 ---
 

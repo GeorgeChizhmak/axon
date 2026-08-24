@@ -30,15 +30,15 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-info()    { echo -e "${CYAN}[axon]${NC} $*"; }
-success() { echo -e "${GREEN}[axon] ✓${NC} $*"; }
-warn()    { echo -e "${YELLOW}[axon] ⚠${NC} $*"; }
-error()   { echo -e "${RED}[axon] ✗${NC} $*" >&2; }
+info()    { printf "${CYAN}[axon]${NC} %s\n" "$*"; }
+success() { printf "${GREEN}[axon] \xe2\x9c\x93${NC} %s\n" "$*"; }
+warn()    { printf "${YELLOW}[axon] \xe2\x9a\xa0${NC} %s\n" "$*"; }
+error()   { printf "${RED}[axon] \xe2\x9c\x97${NC} %s\n" "$*" >&2; }
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
 if [ $# -eq 0 ]; then
     error "No experiment number given."
-    echo "Usage: axon promote <EXPERIMENT_NUM> [-t \"ADR Title\"]" >&2
+    printf 'Usage: axon promote <EXPERIMENT_NUM> [-t "ADR Title"]\n' >&2
     exit 1
 fi
 
@@ -60,7 +60,7 @@ EXP_FILE=$(ls "$DOCS_DIR/experiments/${EXP_ID}-"*.adoc 2>/dev/null | head -1)
 
 if [ -z "$EXP_FILE" ]; then
     error "Experiment #${EXP_NUM} not found in $DOCS_DIR/experiments/"
-    echo "Run 'axon list experiment' to see available experiments." >&2
+    printf "Run 'axon list experiment' to see available experiments.\n" >&2
     exit 1
 fi
 
@@ -102,14 +102,19 @@ ADR_DIR="$DOCS_DIR/adrs"
 mkdir -p "$ADR_DIR"
 
 if ls "$ADR_DIR"/*.adoc >/dev/null 2>&1; then
-    MAXID=$(ls "$ADR_DIR"/*.adoc | xargs -I{} basename {} | grep -Eo '^[0-9]+' | sed 's/^0*//' | sort -rn | head -1)
+    MAXID=$(ls "$ADR_DIR"/*.adoc \
+        | while IFS= read -r f; do basename "$f"; done \
+        | grep -Eo '^[0-9]+' \
+        | sed 's/^0*//' \
+        | sort -rn \
+        | head -1)
     ADR_NUM=$(( MAXID + 1 ))
 else
     ADR_NUM=1
 fi
 
 ADR_ID=$(printf "%04d" "$ADR_NUM")
-ADR_SLUG=$(echo -n "$ADR_TITLE" | tr -Ccs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
+ADR_SLUG=$(echo "$ADR_TITLE" | tr -cs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
 ADR_FILE="$ADR_DIR/${ADR_ID}-${ADR_SLUG}.adoc"
 DATE="${AXON_DATE:-$(date +%Y-%m-%d)}"
 
@@ -169,7 +174,9 @@ if [ -f "$AGGREGATOR" ]; then
 fi
 
 # ── Mark experiment as PROMOTED-TO-ADR ────────────────────────────────────────
-sed -i "s|^\*Status:\* \`.*\`|\*Status:\* \`PROMOTED-TO-ADR\`|" "$EXP_FILE"
+# Portable sed -i: write to a temp file then move (works on both GNU and BSD sed)
+sed "s|^\*Status:\* \`.*\`|\*Status:\* \`PROMOTED-TO-ADR\`|" "$EXP_FILE" > "${EXP_FILE}.bak" \
+    && mv "${EXP_FILE}.bak" "$EXP_FILE"
 
 # Append cross-reference to the experiment file
 cat >> "$EXP_FILE" <<NOTE
@@ -185,8 +192,8 @@ NOTE
 # ── Open in editor ────────────────────────────────────────────────────────────
 ${VISUAL:-${EDITOR:-true}} "$ADR_FILE"
 
-echo ""
+printf "\n"
 success "Experiment #${EXP_NUM} promoted to ADR #${ADR_NUM}"
 info "  Experiment : $EXP_FILE"
 info "  New ADR    : $ADR_FILE"
-echo ""
+printf "\n"

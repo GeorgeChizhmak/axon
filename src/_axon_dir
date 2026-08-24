@@ -9,17 +9,17 @@ set -e
 
 # Walk up the directory tree looking for .axon-dir
 dir="$PWD"
-while [ "$dir" != "/" ]; do
+while true; do
     if [ -f "$dir/.axon-dir" ]; then
         cat "$dir/.axon-dir"
         exit 0
     fi
-    dir="$(dirname "$dir")"
+    parent=$(dirname "$dir")
+    # Stop when we've reached the filesystem root (parent == dir)
+    if [ "$parent" = "$dir" ]; then
+        break
+    fi
+    dir="$parent"
 done
 
-# Fallback: check current directory directly
-if [ -f ".axon-dir" ]; then
-    cat .axon-dir
-else
-    echo "documentation"
-fi
+echo "documentation"

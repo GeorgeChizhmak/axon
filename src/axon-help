@@ -24,17 +24,17 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 if [ $# -eq 0 ]; then
-    echo ""
-    echo -e "  ${CYAN}(A)(X)(O)(N)(_  _)(_)(_)${NC}"
-    echo -e "  ${CYAN}===============================${NC}"
-    echo -e "  ${BOLD}Engineering Workspace Ecosystem${NC}"
-    echo -e "  ${CYAN}===============================${NC}"
-    echo ""
-    echo "  Connecting Blueprints, Science, and Execution."
-    echo ""
-    echo "Usage: axon COMMAND [ARGS...]"
-    echo ""
-    echo -e "${BOLD}Commands:${NC}"
+    printf "\n"
+    printf "  ${CYAN}(A)(X)(O)(N)(_  _)(_)(_)${NC}\n"
+    printf "  ${CYAN}===============================${NC}\n"
+    printf "  ${BOLD}Engineering Workspace Ecosystem${NC}\n"
+    printf "  ${CYAN}===============================${NC}\n"
+    printf "\n"
+    printf "  Connecting Blueprints, Science, and Execution.\n"
+    printf "\n"
+    printf "Usage: axon COMMAND [ARGS...]\n"
+    printf "\n"
+    printf "${BOLD}Commands:${NC}\n"
 
     for cmd in "$axon_bin_dir"/axon-*; do
         name=$(basename "$cmd" | sed 's/^axon-//')
@@ -47,16 +47,16 @@ if [ $# -eq 0 ]; then
         fi
     done
 
-    echo ""
-    echo "Run 'axon help COMMAND' for detailed help on a specific command."
-    echo ""
+    printf "\n"
+    printf "Run 'axon help COMMAND' for detailed help on a specific command.\n"
+    printf "\n"
 else
     cmd="$axon_bin_dir/axon-$1"
     if [ -f "$cmd" ]; then
         # Print all ## comment lines, stripping the leading "## "
         grep '^##' "$cmd" | sed 's/^## \{0,1\}//'
     else
-        echo "Unknown command: $1" >&2
+        printf "Unknown command: %s\n" "$1" >&2
         exit 1
     fi
 fi

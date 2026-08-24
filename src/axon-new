@@ -52,42 +52,51 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
-success() { echo -e "${GREEN}[axon] ✓${NC} $*"; }
-error()   { echo -e "${RED}[axon] ✗${NC} $*" >&2; }
+success() { printf "${GREEN}[axon] \xe2\x9c\x93${NC} %s\n" "$*"; }
+error()   { printf "${RED}[axon] \xe2\x9c\x97${NC} %s\n" "$*" >&2; }
 
-# ── Type → subdir + aggregator mapping ───────────────────────────────────────
-declare -A TYPE_DIRS=(
-    [adr]="adrs"
-    [tdr]="tdrs"
-    [data-card]="data-cards"
-    [model-card]="model-cards"
-    [runbook]="runbooks"
-    [guideline]="guidelines"
-    [experiment]="experiments"
-    [epic]="epics"
-    [task]="tasks"
-    [meeting]="meetings"
-)
+# ── Type → subdir helper (portable; no associative arrays required) ────────────
+type_dir() {
+    case "$1" in
+        adr)        echo "adrs" ;;
+        tdr)        echo "tdrs" ;;
+        data-card)  echo "data-cards" ;;
+        model-card) echo "model-cards" ;;
+        runbook)    echo "runbooks" ;;
+        guideline)  echo "guidelines" ;;
+        experiment) echo "experiments" ;;
+        epic)       echo "epics" ;;
+        task)       echo "tasks" ;;
+        meeting)    echo "meetings" ;;
+        *)          echo "" ;;
+    esac
+}
 
 # Arc42 aggregator files that get auto-updated with include:: directives
-declare -A TYPE_AGGREGATORS=(
-    [adr]="arc42/09_architecture_decisions.adoc"
-    [tdr]="arc42/11_technical_risks.adoc"
-)
+type_aggregator() {
+    case "$1" in
+        adr) echo "arc42/09_architecture_decisions.adoc" ;;
+        tdr) echo "arc42/11_technical_risks.adoc" ;;
+        *)   echo "" ;;
+    esac
+}
 
 # Default status per type
-declare -A TYPE_STATUS=(
-    [adr]="ACCEPTED"
-    [tdr]="OPEN"
-    [data-card]="DRAFT"
-    [model-card]="DRAFT"
-    [runbook]="ACTIVE"
-    [guideline]="ACTIVE"
-    [experiment]="ACTIVE"
-    [epic]="PLANNING"
-    [task]="TODO"
-    [meeting]="SCHEDULED"
-)
+type_status() {
+    case "$1" in
+        adr)        echo "ACCEPTED" ;;
+        tdr)        echo "OPEN" ;;
+        data-card)  echo "DRAFT" ;;
+        model-card) echo "DRAFT" ;;
+        runbook)    echo "ACTIVE" ;;
+        guideline)  echo "ACTIVE" ;;
+        experiment) echo "ACTIVE" ;;
+        epic)       echo "PLANNING" ;;
+        task)       echo "TODO" ;;
+        meeting)    echo "SCHEDULED" ;;
+        *)          echo "DRAFT" ;;
+    esac
+}
 
 # Valid task classes (standard + scientific)
 VALID_TASK_CLASSES="BUG FEAT TASK SPIKE CHORE EPIC HYPO DATA CALIB REPRO META ANLYS"
@@ -95,39 +104,53 @@ VALID_TASK_CLASSES="BUG FEAT TASK SPIKE CHORE EPIC HYPO DATA CALIB REPRO META AN
 # ── Parse type ────────────────────────────────────────────────────────────────
 if [ $# -eq 0 ]; then
     error "No document type given."
-    echo "Usage: axon new <TYPE> <TITLE...> [-s NUM] [-c CLASS] [--notebook]" >&2
-    echo "Types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline" >&2
+    printf "Usage: axon new <TYPE> <TITLE...> [-s NUM] [-c CLASS] [--notebook]\n" >&2
+    printf "Types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline\n" >&2
     exit 1
 fi
 
 TYPE="$1"
 shift
 
-if [ -z "${TYPE_DIRS[$TYPE]+x}" ]; then
+if [ -z "$(type_dir "$TYPE")" ]; then
     error "Unknown document type: '$TYPE'"
-    echo "Valid types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline" >&2
+    printf "Valid types: adr, tdr, epic, task, meeting, experiment, data-card, model-card, runbook, guideline\n" >&2
     exit 1
 fi
 
 # ── Parse options ─────────────────────────────────────────────────────────────
-SUPERSEDED=()
+SUPERSEDED=""
 TASK_CLASS="TASK"
 CREATE_NOTEBOOK=false
 
 # Pre-scan for --notebook (long option not handled by getopts)
-ARGS_FILTERED=()
+ARGS_FILTERED=""
 for arg in "$@"; do
     if [ "$arg" = "--notebook" ]; then
         CREATE_NOTEBOOK=true
     else
-        ARGS_FILTERED+=("$arg")
+        ARGS_FILTERED="$ARGS_FILTERED$(printf '\x01%s' "$arg")"
     fi
 done
-set -- "${ARGS_FILTERED[@]+"${ARGS_FILTERED[@]}"}"
+
+# Rebuild positional parameters from null-delimited string
+if [ -n "$ARGS_FILTERED" ]; then
+    # Use a temp file to safely rebuild args with IFS
+    set -f
+    IFS=$'\x01'
+    # shellcheck disable=SC2086
+    set -- $ARGS_FILTERED
+    unset IFS
+    set +f
+    # Drop the leading empty element caused by the leading \x01
+    if [ "${1:-}" = "" ]; then shift; fi
+else
+    set --
+fi
 
 while getopts "s:c:" opt; do
     case "$opt" in
-        s) SUPERSEDED+=("$OPTARG") ;;
+        s) SUPERSEDED="$SUPERSEDED $OPTARG" ;;
         c) TASK_CLASS="$OPTARG" ;;
         *) error "Unknown option: -$opt"; exit 1 ;;
     esac
@@ -143,8 +166,8 @@ if [ "$TYPE" = "task" ] || [ "$TYPE" = "experiment" ]; then
     done
     if ! $VALID; then
         error "Unknown class: '$TASK_CLASS'"
-        echo "Valid classes (Standard): BUG FEAT TASK SPIKE CHORE EPIC" >&2
-        echo "Valid classes (Scientific): HYPO DATA CALIB REPRO META ANLYS" >&2
+        printf "Valid classes (Standard): BUG FEAT TASK SPIKE CHORE EPIC\n" >&2
+        printf "Valid classes (Scientific): HYPO DATA CALIB REPRO META ANLYS\n" >&2
         exit 1
     fi
     TASK_CLASS="$TASK_CLASS_UPPER"
@@ -165,13 +188,13 @@ else
     DOCS_DIR="$("$axon_bin_dir/_axon_dir")"
 fi
 
-SUBDIR="$DOCS_DIR/${TYPE_DIRS[$TYPE]}"
+SUBDIR="$DOCS_DIR/$(type_dir "$TYPE")"
 mkdir -p "$SUBDIR"
 
 # ── Calculate next sequential number ─────────────────────────────────────────
 if ls "$SUBDIR"/*.adoc >/dev/null 2>&1; then
     MAXID=$(ls "$SUBDIR"/*.adoc 2>/dev/null \
-        | xargs -I{} basename {} \
+        | while IFS= read -r f; do basename "$f"; done \
         | grep -Eo '^[0-9]+' \
         | sed 's/^0*//' \
         | sort -rn \
@@ -182,10 +205,10 @@ else
 fi
 
 NEWID=$(printf "%04d" "$NEWNUM")
-SLUG=$(echo -n "$TITLE" | tr -Ccs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
+SLUG=$(echo "$TITLE" | tr -cs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/^-//;s/-$//')
 DSTFILE="$SUBDIR/${NEWID}-${SLUG}.adoc"
 DATE="${AXON_DATE:-$(date +%Y-%m-%d)}"
-STATUS="${TYPE_STATUS[$TYPE]}"
+STATUS="$(type_status "$TYPE")"
 
 # ── Choose template ───────────────────────────────────────────────────────────
 # Prefer a custom template in the workspace first, then fall back to built-in
@@ -214,32 +237,32 @@ sed \
     "$TEMPLATE" > "$DSTFILE"
 
 # ── Handle supersession (-s flag) ─────────────────────────────────────────────
-for target_num in "${SUPERSEDED[@]}"; do
+for target_num in $SUPERSEDED; do
     target_id=$(printf "%04d" "$target_num")
     target_file=$(ls "$SUBDIR/${target_id}-"*.adoc 2>/dev/null | head -1)
 
     if [ -z "$target_file" ]; then
-        echo "[axon] WARNING: Could not find $TYPE #${target_num} to mark as superseded." >&2
+        printf "[axon] WARNING: Could not find %s #%s to mark as superseded.\n" "$TYPE" "$target_num" >&2
         continue
     fi
 
-    # Mark target as superseded (update its Status line)
-    sed -i "s|^\*Status:\* \`.*\`|\*Status:\* \`SUPERSEDED\`|" "$target_file"
+    # Mark target as superseded (update its Status line) — portable sed -i
+    _sed_inplace() { local f="$1"; shift; sed "$@" "$f" > "${f}.bak" && mv "${f}.bak" "$f"; }
+    _sed_inplace "$target_file" "s|^\*Status:\* \`.*\`|\*Status:\* \`SUPERSEDED\`|"
 
     # Append superseded-by note to target
-    echo "" >> "$target_file"
-    echo "_Superseded by link:${NEWID}-${SLUG}.adoc[#${NEWNUM} ${TITLE}]_" >> "$target_file"
+    printf "\n_Superseded by link:%s-%s.adoc[#%s %s]_\n" "$NEWID" "$SLUG" "$NEWNUM" "$TITLE" >> "$target_file"
 
     # Append supersedes note to new file
-    echo "" >> "$DSTFILE"
-    echo "_Supersedes link:$(basename "$target_file")[#${target_num}]_" >> "$DSTFILE"
+    printf "\n_Supersedes link:%s[#%s]_\n" "$(basename "$target_file")" "$target_num" >> "$DSTFILE"
 done
 
 # ── Auto-inject include:: into Arc42 aggregator (ADR + TDR only) ─────────────
-if [ -n "${TYPE_AGGREGATORS[$TYPE]+x}" ]; then
-    AGGREGATOR="$DOCS_DIR/${TYPE_AGGREGATORS[$TYPE]}"
+AGGREGATOR_REL="$(type_aggregator "$TYPE")"
+if [ -n "$AGGREGATOR_REL" ]; then
+    AGGREGATOR="$DOCS_DIR/${AGGREGATOR_REL}"
     if [ -f "$AGGREGATOR" ]; then
-        INCLUDE_LINE="include::../${TYPE_DIRS[$TYPE]}/${NEWID}-${SLUG}.adoc[]"
+        INCLUDE_LINE="include::../${SUBDIR##*/}/${NEWID}-${SLUG}.adoc[]"
         # Insert the separator + include before the closing :leveloffset: -1
         # Use a temporary file for portability with both GNU and BSD sed
         TMPFILE=$(mktemp)
@@ -276,10 +299,9 @@ if [ "$TYPE" = "experiment" ] && $CREATE_NOTEBOOK; then
             "$NOTEBOOK_TEMPLATE" > "$NOTEBOOK_FILE"
         success "Notebook: $NOTEBOOK_FILE"
         # Record link in the adoc report
-        echo "" >> "$DSTFILE"
-        echo "// Companion notebook: link:${NEWID}-${SLUG}.ipynb[Jupyter Notebook]" >> "$DSTFILE"
+        printf "\n// Companion notebook: link:%s-%s.ipynb[Jupyter Notebook]\n" "$NEWID" "$SLUG" >> "$DSTFILE"
     else
-        echo "[axon] WARNING: Notebook template not found at $NOTEBOOK_TEMPLATE — skipping." >&2
+        printf "[axon] WARNING: Notebook template not found at %s — skipping.\n" "$NOTEBOOK_TEMPLATE" >&2
     fi
 fi
 
