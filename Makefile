@@ -14,6 +14,7 @@ install:
 	cp -r templates/doc-types/* $(DATADIR)/templates/doc-types/
 	cp templates/workspace.dsl  $(DATADIR)/templates/
 	cp templates/main.adoc      $(DATADIR)/templates/
+	cp templates/board.adoc     $(DATADIR)/templates/
 	cp templates/README.adoc    $(DATADIR)/templates/
 	cp VERSION                  $(DATADIR)/
 	@for f in $(SCRIPTS); do \

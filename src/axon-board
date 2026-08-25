@@ -1,0 +1,551 @@
+#!/usr/bin/env bash
+set -euo pipefail
+eval "$($(dirname "$0")/axon-config)"
+
+## usage: axon board [OPTIONS]
+##
+## Regenerates BOARD.adoc from current epics/ and tasks/ as a visual Kanban
+## board with one swimlane per epic, then compiles it to HTML.
+##
+## Includes each epic's PlantUML Gantt chart in a Timelines section.
+##
+## Columns: TODO | IN-PROGRESS | BLOCKED | DONE
+## Tasks without a matching epic land in an "Unassigned" swimlane.
+##
+## Options:
+##   --no-generate  Write BOARD.adoc only (skip HTML/PDF)
+##   --html         Render HTML (default when generating)
+##   --pdf          Also render PDF
+##   --skip-clean   Skip cleaning the .asciidoctor diagram cache
+##
+## Prerequisites (for compile, install once):
+##   gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
+##
+## Examples:
+##   axon board
+##   axon board --no-generate
+##   axon board --pdf
+##   axon board --html --pdf
+
+# ── Colours ───────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+info()    { printf "${CYAN}[axon]${NC} %s\n" "$*"; }
+success() { printf "${GREEN}[axon] \xe2\x9c\x93${NC} %s\n" "$*"; }
+warn()    { printf "${YELLOW}[axon] \xe2\x9a\xa0${NC} %s\n" "$*"; }
+error()   { printf "${RED}[axon] \xe2\x9c\x97${NC} %s\n" "$*" >&2; }
+
+# ── Parse flags ───────────────────────────────────────────────────────────────
+DO_GENERATE=true
+DO_HTML=true
+DO_PDF=false
+DO_CLEAN=true
+EXPLICIT_FORMAT=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --no-generate) DO_GENERATE=false ;;
+        --html)        DO_HTML=true;  EXPLICIT_FORMAT=true ;;
+        --pdf)         DO_PDF=true;   EXPLICIT_FORMAT=true ;;
+        --skip-clean)  DO_CLEAN=false ;;
+        *)
+            error "Unknown option: $arg"
+            printf "Usage: axon board [--no-generate] [--html] [--pdf] [--skip-clean]\n" >&2
+            exit 1
+            ;;
+    esac
+done
+
+# If only --pdf was given (no --html), HTML off unless user also wants HTML
+if $EXPLICIT_FORMAT && $DO_PDF; then
+    # Keep HTML on unless user only passed --pdf without --html.
+    # Detect: if --html not in args and --pdf is, HTML stays default true
+    # Plan: --pdf also render PDF; --html --pdf both. Default is HTML only.
+    _has_html=false
+    _has_pdf=false
+    for arg in "$@"; do
+        [ "$arg" = "--html" ] && _has_html=true
+        [ "$arg" = "--pdf" ] && _has_pdf=true
+    done
+    if $_has_pdf && ! $_has_html; then
+        # --pdf alone: HTML + PDF (plan: also render PDF)
+        DO_HTML=true
+        DO_PDF=true
+    fi
+fi
+
+# ── Resolve workspace ─────────────────────────────────────────────────────────
+DOCS_DIR="$("$axon_bin_dir/_axon_dir")"
+EPICS_DIR="$DOCS_DIR/epics"
+TASKS_DIR="$DOCS_DIR/tasks"
+BOARD_ADOC="$DOCS_DIR/BOARD.adoc"
+TODAY=$(date +%Y-%m-%d)
+
+# Project name / author from master adoc or defaults
+PROJECT_NAME="Project"
+AUTHOR="Author"
+MASTER_ADOC=$(find "$DOCS_DIR" -maxdepth 1 -name "*.adoc" \
+    ! -name "README.adoc" ! -name "BOARD.adoc" 2>/dev/null | head -1 || true)
+if [ -n "$MASTER_ADOC" ]; then
+    # First = Title line
+    title_line=$(grep -m1 '^= ' "$MASTER_ADOC" 2>/dev/null || true)
+    if [ -n "$title_line" ]; then
+        PROJECT_NAME=$(printf '%s' "$title_line" | sed 's/^= //; s/ Software Architecture Documentation$//; s/[[:space:]]*$//')
+    fi
+    # Author is usually the line after the title
+    AUTHOR=$(awk '/^= /{getline; if (NF && $0 !~ /^:/) {print; exit}}' "$MASTER_ADOC" 2>/dev/null || echo "Author")
+fi
+
+# ── Metadata helpers (same conventions as axon-list) ──────────────────────────
+get_status() {
+    local file="$1"
+    sed -n "s/.*\*Status:\* \`\([^\`]*\)\`.*/\1/p" "$file" 2>/dev/null | head -1 || echo "UNKNOWN"
+}
+
+get_field() {
+    local file="$1"
+    local field="$2"
+    local val
+    val=$(sed -n "s/.*\*${field}:\* \`\([^\`]*\)\`.*/\1/p" "$file" 2>/dev/null | head -1 || true)
+    if [ -z "$val" ]; then
+        val=$(grep "\*${field}:\*" "$file" 2>/dev/null | head -1 \
+              | sed "s/.*\*${field}:\* //" \
+              | sed 's/ +[[:space:]]*$//' \
+              | sed 's/[[:space:]]*$//' || true)
+    fi
+    printf "%s" "${val:-—}"
+}
+
+get_title() {
+    local file="$1"
+    local kind="$2"  # Task or Epic
+    local line
+    line=$(grep -m1 "^== ${kind} " "$file" 2>/dev/null || true)
+    if [ -n "$line" ]; then
+        # "== Task 1: Title" or "== Epic EPIC-0001: Title"
+        printf '%s' "$line" | sed "s/^== ${kind} [^:]*: //"
+    else
+        basename "$file" .adoc | sed 's/^[0-9]*-//'
+    fi
+}
+
+normalize_column() {
+    case "$1" in
+        IN-PROGRESS) echo "inprogress" ;;
+        BLOCKED)     echo "blocked" ;;
+        DONE|COMPLETED|SUCCEEDED|PROMOTED-TO-ADR) echo "done" ;;
+        *)           echo "todo" ;;
+    esac
+}
+
+# Escape AsciiDoc / HTML specials in card text
+escape_adoc() {
+    printf '%s' "$1" | sed 's/|/\\|/g'
+}
+
+escape_html() {
+    printf '%s' "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g'
+}
+
+# Match task Epic field to an epic id (0001) or slug
+task_matches_epic() {
+    local epic_ref="$1"   # raw *Epic:* value
+    local epic_num="$2"   # 0001
+    local epic_slug="$3"
+    local ref
+    ref=$(printf '%s' "$epic_ref" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if [ -z "$ref" ] || [ "$ref" = "—" ] || [ "$ref" = "-" ] || [ "$ref" = "–" ] || [ "$ref" = "--" ]; then
+        return 1
+    fi
+
+    local num_stripped slug_lc
+    num_stripped=$(printf '%s' "$epic_num" | sed 's/^0*//')
+    [ -z "$num_stripped" ] && num_stripped="0"
+    slug_lc=$(printf '%s' "$epic_slug" | tr '[:upper:]' '[:lower:]')
+
+    case "$ref" in
+        "epic-${epic_num}"|"epic-${num_stripped}"|"#${epic_num}"|"#${num_stripped}"|"${epic_num}"|"${num_stripped}")
+            return 0
+            ;;
+        "$slug_lc")
+            return 0
+            ;;
+        epic-${epic_num}:*|epic-${num_stripped}:*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+emit_card_html() {
+    local num="$1" title="$2" class="$3" assignee="$4" priority="$5" relpath="$6"
+    local cls safe_title
+    cls=$(printf '%s' "$class" | tr '[:lower:]' '[:upper:]' | tr -cd 'A-Z')
+    [ -z "$cls" ] || [ "$cls" = "—" ] && cls="TASK"
+    safe_title=$(escape_html "$title")
+    printf '<div class="kanban-card class-%s">' "$cls"
+    printf '<a href="%s">#%s</a> <span class="card-meta">[%s]</span>' \
+        "$(escape_html "$relpath")" "$num" "$(escape_html "$cls")"
+    printf '<span class="card-title">%s</span>' "$safe_title"
+    printf '<span class="card-meta">%s · %s</span>' \
+        "$(escape_html "$assignee")" "$(escape_html "$priority")"
+    printf '</div>\n'
+}
+
+emit_card_adoc() {
+    local num="$1" title="$2" class="$3" assignee="$4" priority="$5" relpath="$6"
+    printf '* link:%s[#%s] [%s] %s _(%s · %s)_\n' \
+        "$relpath" "$num" "$class" "$(escape_adoc "$title")" \
+        "$(escape_adoc "$assignee")" "$(escape_adoc "$priority")"
+}
+
+# ── Collect epics ─────────────────────────────────────────────────────────────
+# Temp layout:
+#   $tmpdir/epics.list          — lines: num|slug|file|title|status|priority
+#   $tmpdir/tasks/<key>/<col>   — HTML card snippets per swimlane key + column
+#   $tmpdir/tasks_adoc/<key>/<col> — AsciiDoc list items for PDF section
+# key = epic num (0001) or "unassigned"
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+mkdir -p "$tmpdir/tasks/unassigned/todo" \
+         "$tmpdir/tasks/unassigned/inprogress" \
+         "$tmpdir/tasks/unassigned/blocked" \
+         "$tmpdir/tasks/unassigned/done" \
+         "$tmpdir/tasks_adoc/unassigned/todo" \
+         "$tmpdir/tasks_adoc/unassigned/inprogress" \
+         "$tmpdir/tasks_adoc/unassigned/blocked" \
+         "$tmpdir/tasks_adoc/unassigned/done"
+
+: > "$tmpdir/epics.list"
+
+if [ -d "$EPICS_DIR" ]; then
+    for f in "$EPICS_DIR"/[0-9]*.adoc; do
+        [ -e "$f" ] || continue
+        bname=$(basename "$f" .adoc)
+        num="${bname%%-*}"
+        slug="${bname#*-}"
+        title=$(get_title "$f" "Epic")
+        status=$(get_status "$f")
+        priority=$(get_field "$f" "Priority")
+        printf '%s|%s|%s|%s|%s|%s\n' "$num" "$slug" "$f" "$title" "$status" "$priority" >> "$tmpdir/epics.list"
+        for col in todo inprogress blocked done; do
+            mkdir -p "$tmpdir/tasks/$num/$col" "$tmpdir/tasks_adoc/$num/$col"
+        done
+    done
+fi
+
+# Sort epics by number
+if [ -s "$tmpdir/epics.list" ]; then
+    sort -t'|' -k1,1 "$tmpdir/epics.list" > "$tmpdir/epics.sorted"
+    mv "$tmpdir/epics.sorted" "$tmpdir/epics.list"
+fi
+
+# ── Collect and place tasks ───────────────────────────────────────────────────
+if [ -d "$TASKS_DIR" ]; then
+    for f in "$TASKS_DIR"/[0-9]*.adoc; do
+        [ -e "$f" ] || continue
+        bname=$(basename "$f" .adoc)
+        num="${bname%%-*}"
+        title=$(get_title "$f" "Task")
+        status=$(get_status "$f")
+        class=$(get_field "$f" "Class")
+        assignee=$(get_field "$f" "Assignee")
+        priority=$(get_field "$f" "Priority")
+        epic_ref=$(get_field "$f" "Epic")
+        col=$(normalize_column "$status")
+        relpath="tasks/${bname}.adoc"
+
+        lane="unassigned"
+        if [ -s "$tmpdir/epics.list" ]; then
+            while IFS='|' read -r enum eslug _efile _etitle _estatus _eprio; do
+                if task_matches_epic "$epic_ref" "$enum" "$eslug"; then
+                    lane="$enum"
+                    break
+                fi
+            done < "$tmpdir/epics.list"
+        fi
+
+        mkdir -p "$tmpdir/tasks/$lane/$col" "$tmpdir/tasks_adoc/$lane/$col"
+        emit_card_html "$num" "$title" "$class" "$assignee" "$priority" "$relpath" \
+            >> "$tmpdir/tasks/$lane/$col/cards.html"
+        emit_card_adoc "$num" "$title" "$class" "$assignee" "$priority" "$relpath" \
+            >> "$tmpdir/tasks_adoc/$lane/$col/cards.adoc"
+    done
+fi
+
+cell_html() {
+    local lane="$1" col="$2"
+    local file="$tmpdir/tasks/$lane/$col/cards.html"
+    if [ -f "$file" ] && [ -s "$file" ]; then
+        cat "$file"
+    else
+        printf '<div class="kanban-empty">(empty)</div>\n'
+    fi
+}
+
+cell_adoc() {
+    local lane="$1" col="$2"
+    local file="$tmpdir/tasks_adoc/$lane/$col/cards.adoc"
+    if [ -f "$file" ] && [ -s "$file" ]; then
+        cat "$file"
+    else
+        printf '_ (empty)_\n'
+    fi
+}
+
+# Extract PlantUML Gantt block(s) from an epic .adoc.
+# Matches both template form `[plantuml, …-gantt, svg]` and plain `[plantuml]`
+# whose body contains `@startgantt` (common after hand-edits).
+extract_gantt() {
+    local file="$1"
+    local epic_num="${2:-0000}"
+    awk -v epic_num="$epic_num" '
+        BEGIN { capturing = 0; dots = 0; buf = "" }
+        /^\[plantuml/ {
+            capturing = 1
+            dots = 0
+            buf = $0 ORS
+            next
+        }
+        capturing {
+            buf = buf $0 ORS
+            if (/^\.\.\.\.$/) {
+                dots++
+                if (dots >= 2) {
+                    if (buf ~ /@startgantt/) {
+                        # Ensure a unique diagram target for the board page
+                        if (buf ~ /^\[plantuml\]/) {
+                            sub(/^\[plantuml\]/, "[plantuml, board-epic-" epic_num "-gantt, svg]", buf)
+                        } else if (buf ~ /^\[plantuml,/) {
+                            sub(/^\[plantuml, */, "[plantuml, board-", buf)
+                        }
+                        printf "%s", buf
+                    }
+                    capturing = 0
+                    dots = 0
+                    buf = ""
+                }
+            }
+        }
+    ' "$file" 2>/dev/null || true
+}
+
+# ── Write BOARD.adoc ──────────────────────────────────────────────────────────
+write_board() {
+    info "Writing BOARD.adoc from epics/ and tasks/..."
+
+    local template="$axon_template_dir/board.adoc"
+    local custom="$DOCS_DIR/templates/board.adoc"
+    [ -f "$custom" ] && template="$custom"
+
+    if [ ! -f "$template" ]; then
+        error "Board template not found: $template"
+        exit 1
+    fi
+
+    # Header from template up to // BOARD_BODY
+    sed \
+        -e "s|PROJECT_NAME|${PROJECT_NAME}|g" \
+        -e "s|AUTHOR|${AUTHOR}|g" \
+        -e "s|TODAY|${TODAY}|g" \
+        "$template" | sed '/\/\/ BOARD_BODY/,$d' > "$BOARD_ADOC"
+
+    {
+        printf '\n'
+
+        # ── Epic Gantt timelines (PlantUML via asciidoctor-diagram) ───────────
+        printf '== Timelines\n\n'
+        printf 'PlantUML Gantt charts copied from each epic. Edit the epic file to update a timeline, then re-run `axon board`.\n\n'
+
+        local gantt_count=0
+        if [ -s "$tmpdir/epics.list" ]; then
+            while IFS='|' read -r enum eslug efile etitle estatus eprio; do
+                gantt_block=$(extract_gantt "$efile" "$enum")
+                if [ -n "$gantt_block" ]; then
+                    gantt_count=$(( gantt_count + 1 ))
+                    printf '=== EPIC-%s: %s\n\n' "$enum" "$etitle"
+                    printf '*Status:* `%s` · *Priority:* `%s` · link:epics/%s-%s.adoc[source]\n\n' \
+                        "$estatus" "$eprio" "$enum" "$eslug"
+                    printf '%s\n' "$gantt_block"
+                fi
+            done < "$tmpdir/epics.list"
+        fi
+
+        if [ "$gantt_count" -eq 0 ]; then
+            printf '_No PlantUML Gantt charts found in epics/. Add a `[plantuml]` block with `@startgantt`, or create an epic with `axon new epic \"...\"`._\n\n'
+        fi
+
+        # ── HTML Kanban (passthrough) ─────────────────────────────────────────
+        printf '== Board\n\n'
+        printf '++++\n'
+        printf '<table class="kanban-board" role="grid">\n'
+        printf '<thead><tr>\n'
+        printf '<th scope="col">Epic</th>\n'
+        printf '<th scope="col">TODO</th>\n'
+        printf '<th scope="col">IN-PROGRESS</th>\n'
+        printf '<th scope="col">BLOCKED</th>\n'
+        printf '<th scope="col">DONE</th>\n'
+        printf '</tr></thead>\n'
+        printf '<tbody>\n'
+
+        if [ -s "$tmpdir/epics.list" ]; then
+            while IFS='|' read -r enum eslug efile etitle estatus eprio; do
+                printf '<tr>\n'
+                printf '<td class="lane-label">EPIC-%s<br>%s<span class="lane-meta">%s · %s</span></td>\n' \
+                    "$enum" "$(escape_html "$etitle")" "$(escape_html "$estatus")" "$(escape_html "$eprio")"
+                printf '<td>'
+                cell_html "$enum" todo
+                printf '</td><td>'
+                cell_html "$enum" inprogress
+                printf '</td><td>'
+                cell_html "$enum" blocked
+                printf '</td><td>'
+                cell_html "$enum" done
+                printf '</td>\n</tr>\n'
+            done < "$tmpdir/epics.list"
+        fi
+
+        # Unassigned lane (always shown)
+        printf '<tr>\n'
+        printf '<td class="lane-label">Unassigned<span class="lane-meta">No epic link</span></td>\n'
+        printf '<td>'
+        cell_html unassigned todo
+        printf '</td><td>'
+        cell_html unassigned inprogress
+        printf '</td><td>'
+        cell_html unassigned blocked
+        printf '</td><td>'
+        cell_html unassigned done
+        printf '</td>\n</tr>\n'
+
+        printf '</tbody></table>\n'
+        printf '++++\n\n'
+
+        # ── PDF / plain AsciiDoc mirror ───────────────────────────────────────
+        printf '== Swimlanes (printable)\n\n'
+        printf 'The section below mirrors the board for PDF and text readers.\n\n'
+
+        if [ -s "$tmpdir/epics.list" ]; then
+            while IFS='|' read -r enum eslug efile etitle estatus eprio; do
+                printf '=== EPIC-%s: %s\n\n' "$enum" "$etitle"
+                printf '*Status:* `%s` · *Priority:* `%s` · link:epics/%s-%s.adoc[source]\n\n' \
+                    "$estatus" "$eprio" "$enum" "$eslug"
+
+                # Gantt again under each swimlane for PDF readers jumping by epic
+                gantt_block=$(extract_gantt "$efile" "$enum")
+                if [ -n "$gantt_block" ]; then
+                    printf '==== Timeline\n\n'
+                    # Distinct target names from the Timelines section above
+                    printf '%s\n' "$gantt_block" | sed "s|board-epic-|board-swim-epic-|"
+                fi
+
+                printf '[cols="1,1,1,1", options="header"]\n'
+                printf '|===\n'
+                printf '|TODO |IN-PROGRESS |BLOCKED |DONE\n\n'
+                printf 'a|\n'
+                cell_adoc "$enum" todo
+                printf '\na|\n'
+                cell_adoc "$enum" inprogress
+                printf '\na|\n'
+                cell_adoc "$enum" blocked
+                printf '\na|\n'
+                cell_adoc "$enum" done
+                printf '\n|===\n\n'
+            done < "$tmpdir/epics.list"
+        else
+            printf '_No epics yet. Run `axon new epic \"...\"` to add one._\n\n'
+        fi
+
+        printf '=== Unassigned\n\n'
+        printf 'Tasks with no matching `*Epic:*` field.\n\n'
+        printf '[cols="1,1,1,1", options="header"]\n'
+        printf '|===\n'
+        printf '|TODO |IN-PROGRESS |BLOCKED |DONE\n\n'
+        printf 'a|\n'
+        cell_adoc unassigned todo
+        printf '\na|\n'
+        cell_adoc unassigned inprogress
+        printf '\na|\n'
+        cell_adoc unassigned blocked
+        printf '\na|\n'
+        cell_adoc unassigned done
+        printf '\n|===\n\n'
+
+        printf '[.text-center]\n'
+        printf '_Board generated with https://github.com/GeorgeChizhmak/axon[axon] — George Chizhmak, 2026._\n'
+    } >> "$BOARD_ADOC"
+
+    success "BOARD.adoc → $BOARD_ADOC"
+}
+
+# ── Compile ───────────────────────────────────────────────────────────────────
+check_prereqs() {
+    local missing=0
+    if $DO_HTML && ! command -v asciidoctor >/dev/null 2>&1; then
+        error "'asciidoctor' not found. Run: gem install asciidoctor asciidoctor-diagram"
+        missing=1
+    fi
+    if $DO_PDF && ! command -v asciidoctor-pdf >/dev/null 2>&1; then
+        error "'asciidoctor-pdf' not found. Run: gem install asciidoctor-pdf"
+        missing=1
+    fi
+    [ $missing -eq 0 ] || exit 1
+}
+
+clean_cache() {
+    if [ -d "$DOCS_DIR/.asciidoctor/diagram" ]; then
+        info "Cleaning diagram cache..."
+        rm -rf "$DOCS_DIR/.asciidoctor/diagram"
+    fi
+}
+
+render_html() {
+    info "Rendering board HTML..."
+    local out="$DOCS_DIR/BOARD.html"
+    asciidoctor \
+        -r asciidoctor-diagram \
+        -a allow-uri-read \
+        "$BOARD_ADOC" \
+        -o "$out"
+    success "HTML → $out"
+}
+
+render_pdf() {
+    info "Rendering board PDF..."
+    local out="$DOCS_DIR/BOARD.pdf"
+    asciidoctor-pdf \
+        -r asciidoctor-diagram \
+        "$BOARD_ADOC" \
+        -o "$out"
+    success "PDF  → $out"
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+printf "\n"
+printf "${CYAN}══════════════════════════════════════════════════════${NC}\n"
+printf "${CYAN}   axon — Task Board                                   ${NC}\n"
+printf "${CYAN}══════════════════════════════════════════════════════${NC}\n"
+printf "\n"
+
+write_board
+
+if $DO_GENERATE; then
+    check_prereqs
+    $DO_CLEAN && clean_cache
+    $DO_HTML  && render_html
+    $DO_PDF   && render_pdf
+    printf "\n"
+    success "Board build complete:"
+    printf "    %s\n" "$BOARD_ADOC"
+    $DO_HTML && printf "    %s/BOARD.html\n" "$DOCS_DIR"
+    $DO_PDF  && printf "    %s/BOARD.pdf\n"  "$DOCS_DIR"
+    printf "\n"
+else
+    printf "\n"
+    success "BOARD.adoc refreshed (--no-generate). Run 'axon board' to compile.\n"
+fi

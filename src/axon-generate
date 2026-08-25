@@ -63,8 +63,9 @@ done
 DOCS_DIR="$("$axon_bin_dir/_axon_dir")"
 DIAGRAMS_DIR="$DOCS_DIR/diagrams"
 
-# Auto-detect the master .adoc file (the one that is NOT in arc42/ subdir)
-MASTER_ADOC=$(find "$DOCS_DIR" -maxdepth 1 -name "*.adoc" ! -name "README.adoc" | head -1)
+# Auto-detect the master .adoc file (exclude README, BOARD, and arc42/)
+MASTER_ADOC=$(find "$DOCS_DIR" -maxdepth 1 -name "*.adoc" \
+    ! -name "README.adoc" ! -name "BOARD.adoc" | head -1)
 
 if [ -z "$MASTER_ADOC" ]; then
     error "No master .adoc file found in $DOCS_DIR/"

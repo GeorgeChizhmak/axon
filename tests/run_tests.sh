@@ -48,6 +48,7 @@ echo "$output" | grep -q "axon" && pass "help shows tool name" || fail "help mis
 echo "$output" | grep -q "init"     && pass "help lists 'init'"    || fail "help missing 'init'"
 echo "$output" | grep -q "new"      && pass "help lists 'new'"     || fail "help missing 'new'"
 echo "$output" | grep -q "generate" && pass "help lists 'generate'"|| fail "help missing 'generate'"
+echo "$output" | grep -q "board"    && pass "help lists 'board'"   || fail "help missing 'board'"
 echo "$output" | grep -q "list"     && pass "help lists 'list'"    || fail "help missing 'list'"
 echo "$output" | grep -q "version"  && pass "help lists 'version'" || fail "help missing 'version'"
 
@@ -360,6 +361,87 @@ NB_FILE=$(find documentation/experiments -name "0003-*.ipynb" | head -1)
 assert_contains "$NB_FILE" "EXP-0003"
 assert_contains "$NB_FILE" "Transformer Fine-Tuning Benchmark"
 assert_contains "$EXP_NB" "Companion notebook"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 17: axon board (BOARD.adoc with epic swimlanes)
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 17: axon board ]"
+
+# Link task #0001 to EPIC-0001
+if [ -n "${TASK_1:-}" ] && [ -f "$TASK_1" ]; then
+    _sed_inplace() { local f="$1"; shift; sed "$@" "$f" > "${f}.bak" && mv "${f}.bak" "$f"; }
+    # Template uses unquoted em-dash; also handle backtick form
+    _sed_inplace "$TASK_1" 's|^\*Epic:\* `[^`]*`|*Epic:* `EPIC-0001`|'
+    _sed_inplace "$TASK_1" 's|^\*Epic:\* —|*Epic:* `EPIC-0001`|'
+    _sed_inplace "$TASK_1" 's|^\*Epic:\* -|*Epic:* `EPIC-0001`|'
+    assert_contains "$TASK_1" "EPIC-0001"
+fi
+
+board_gen=$("$BIN" board --no-generate 2>&1)
+assert_output "$board_gen" "BOARD.adoc"
+assert_exists "documentation/BOARD.adoc"
+assert_contains "documentation/BOARD.adoc" "TODO"
+assert_contains "documentation/BOARD.adoc" "IN-PROGRESS"
+assert_contains "documentation/BOARD.adoc" "BLOCKED"
+assert_contains "documentation/BOARD.adoc" "DONE"
+assert_contains "documentation/BOARD.adoc" "Unassigned"
+assert_contains "documentation/BOARD.adoc" "EPIC-0001"
+assert_contains "documentation/BOARD.adoc" "kanban-board"
+assert_contains "documentation/BOARD.adoc" "Timelines"
+assert_contains "documentation/BOARD.adoc" "@startgantt"
+assert_contains "documentation/BOARD.adoc" "plantuml"
+
+# Also accept plain [plantuml] + @startgantt (hand-edited epics)
+PLAIN_EPIC="documentation/epics/0002-plain-plantuml-gantt.adoc"
+cat > "$PLAIN_EPIC" <<'EOF'
+== Epic EPIC-0002: Plain PlantUML Gantt
+
+[NOTE]
+====
+*Status:* `PLANNING` +
+*Priority:* `LOW` +
+====
+
+[plantuml]
+....
+@startgantt
+Project starts 2026-01-01
+[Work] lasts 1 week
+@endgantt
+....
+EOF
+
+"$BIN" board --no-generate >/dev/null 2>&1
+assert_contains "documentation/BOARD.adoc" "@startgantt"
+assert_contains "documentation/BOARD.adoc" "board-epic-0002-gantt"
+grep -q "\[plantuml, board-epic-0001-gantt\|\[plantuml, board-epic-" documentation/BOARD.adoc \
+    && pass "BOARD assigns plantuml diagram targets" \
+    || fail "BOARD missing plantuml diagram targets"
+
+# Help lists board
+help_board=$("$BIN" help 2>&1)
+echo "$help_board" | grep -q "board" && pass "help lists 'board'" || fail "help missing 'board'"
+
+detail_board=$("$BIN" help board 2>&1)
+echo "$detail_board" | grep -q "BOARD.adoc" && pass "help board mentions BOARD.adoc" || fail "help board missing BOARD.adoc"
+echo "$detail_board" | grep -q "\-\-no-generate" && pass "help board mentions --no-generate" || fail "help board missing --no-generate"
+
+# Optional HTML compile when asciidoctor is available
+if command -v asciidoctor >/dev/null 2>&1; then
+    "$BIN" board --skip-clean >/dev/null 2>&1 \
+        && assert_exists "documentation/BOARD.html" \
+        || fail "axon board HTML compile failed"
+else
+    echo -e "  ${CYAN}⊘${NC} Skipping HTML compile (asciidoctor not installed)"
+fi
+
+# axon generate must still find the architecture master, not BOARD.adoc
+# (smoke: detection logic — skip full generate without docker/asciidoctor)
+MASTER_CANDIDATE=$(find documentation -maxdepth 1 -name "*.adoc" ! -name "README.adoc" ! -name "BOARD.adoc" | head -1)
+echo "$MASTER_CANDIDATE" | grep -qv "BOARD" \
+    && pass "master adoc detection excludes BOARD.adoc" \
+    || fail "master adoc detection picked BOARD.adoc"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary

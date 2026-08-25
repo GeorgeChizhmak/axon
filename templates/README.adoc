@@ -25,6 +25,9 @@ and the link:https://c4model.com[C4 Model] for visual architecture diagrams.
 
 === Other Documentation
 
+* 📁 link:documentation/epics/[Epics] — High-level project epics
+* 📁 link:documentation/tasks/[Tasks] — Engineering tasks
+* 📄 link:documentation/BOARD.html[Task Board (HTML)] — Visual Kanban (`axon board`)
 * 📁 link:documentation/data-cards/[Data Cards] — Dataset documentation
 * 📁 link:documentation/model-cards/[Model Cards] — ML model documentation
 * 📁 link:documentation/runbooks/[Runbooks] — Operational procedures
@@ -56,6 +59,22 @@ axon generate
 
 This exports the Structurizr DSL to PlantUML, cleans stale diagram caches,
 and renders the final HTML and PDF reports.
+
+=== Visual Task Board
+
+After adding epics and tasks, refresh the Kanban board (epic swimlanes):
+
+[source,bash]
+----
+axon board
+----
+
+Write `BOARD.adoc` only (no compile):
+
+[source,bash]
+----
+axon board --no-generate
+----
 
 === Adding New Documents
 
