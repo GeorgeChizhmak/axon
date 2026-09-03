@@ -1,6 +1,17 @@
 PREFIX  ?= /usr/local
-BINDIR   = $(PREFIX)/bin
-DATADIR  = $(PREFIX)/share/axon
+# Expand PREFIX to an absolute path.
+# Under `sudo make install`, ~ would resolve to /root; instead we look up the
+# invoking user's home via SUDO_USER so paths are always correct.
+_expand_prefix = $(shell \
+  if [ -n "$$SUDO_USER" ]; then \
+    real_home=$$(getent passwd "$$SUDO_USER" | cut -d: -f6); \
+    echo "$(PREFIX)" | sed "s|^~|$$real_home|"; \
+  else \
+    eval echo "$(PREFIX)"; \
+  fi)
+ABS_PREFIX := $(_expand_prefix)
+BINDIR   = $(ABS_PREFIX)/bin
+DATADIR  = $(ABS_PREFIX)/share/axon
 
 SCRIPTS  = $(wildcard src/axon src/axon-* src/_axon_dir)
 

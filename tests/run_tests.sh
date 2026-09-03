@@ -246,6 +246,44 @@ assert_exists "$(find documentation -maxdepth 1 -name "*_architecture.html" | he
 assert_exists "$(find documentation -maxdepth 1 -name "*_architecture.pdf"  | head -1)"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# TEST 10b: axon generate --dsl-only
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 10b: axon generate --dsl-only ]"
+
+# Mock docker for these tests
+mkdir -p "$TESTDIR/bin"
+cat << 'DOCKER_EOF' > "$TESTDIR/bin/docker"
+#!/bin/bash
+if [[ "$*" == *"plantuml/structurizr"* ]]; then
+    mkdir -p documentation/diagrams
+    touch documentation/diagrams/structurizr-SystemContext.puml
+elif [[ "$*" == *"plantuml/plantuml"* ]]; then
+    mkdir -p documentation/rendered_diagrams
+    touch documentation/rendered_diagrams/structurizr-SystemContext.svg
+fi
+DOCKER_EOF
+chmod +x "$TESTDIR/bin/docker"
+export PATH="$TESTDIR/bin:$PATH"
+
+"$BIN" generate --dsl-only >/dev/null 2>&1 \
+    && pass "generate --dsl-only exited cleanly" \
+    || fail "generate --dsl-only failed"
+
+assert_exists "documentation/diagrams/structurizr-SystemContext.puml"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST 10c: axon generate --render-puml
+# ─────────────────────────────────────────────────────────────────────────────
+echo ""
+echo "[ Test 10c: axon generate --render-puml ]"
+"$BIN" generate --render-puml documentation/diagrams --format svg --out-dir documentation/rendered_diagrams >/dev/null 2>&1 \
+    && pass "generate --render-puml exited cleanly" \
+    || fail "generate --render-puml failed"
+
+assert_exists "documentation/rendered_diagrams/structurizr-SystemContext.svg"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # TEST 11: unknown command / type error handling
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""

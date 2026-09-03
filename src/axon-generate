@@ -12,19 +12,25 @@ eval "$($(dirname "$0")/axon-config)"
 ##   4. Renders the master .adoc → PDF
 ##
 ## Options:
-##   --html        Render HTML only
-##   --pdf         Render PDF only
-##   --all         Render both HTML and PDF (default)
-##   --skip-dsl    Skip the Structurizr DSL export step (no Docker needed)
-##   --skip-clean  Skip cleaning stale SVG / diagram caches
+##   --html                  Render HTML only
+##   --pdf                   Render PDF only
+##   --all                   Render both HTML and PDF (default)
+##   --skip-dsl              Skip the Structurizr DSL export step (no Docker needed)
+##   --skip-clean            Skip cleaning stale SVG / diagram caches
+##   --dsl-only              Export Structurizr DSL to PlantUML only (no asciidoctor rendering)
+##   --render-puml [path]    Render PlantUML files using Docker. Defaults to documentation/diagrams
+##   --format <fmt>          Output format for --render-puml (default: svg)
+##   --out-dir <dir>         Output directory for --render-puml (default: documentation/diagrams)
 ##
 ## Prerequisites (install once):
 ##   gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
-##   Docker must be running (unless --skip-dsl is given)
+##   Docker must be running (unless --skip-dsl is given, or for --render-puml)
 ##
 ## Example:
 ##   axon generate
 ##   axon generate --html --skip-dsl
+##   axon generate --dsl-only
+##   axon generate --render-puml documentation/diagrams --format png --out-dir out_diagrams
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'

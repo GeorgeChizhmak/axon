@@ -70,7 +70,7 @@ make install PREFIX=~/.local
 
 ```bash
 gem install asciidoctor asciidoctor-pdf asciidoctor-diagram
-# Docker must be running for `axon generate` (DSL export step)
+# Docker must be running for `axon generate` (DSL export and --render-puml steps)
 ```
 
 ### macOS
@@ -158,7 +158,7 @@ axon list
 |---|---|
 | `axon init [DIR] [-n NAME] [-a AUTHOR]` | Initialise workspace |
 | `axon new <type> <title..> [-s NUM] [-c CLASS] [--notebook]` | Create a new document |
-| `axon generate [--html\|--pdf\|--skip-dsl]` | Build architecture HTML and PDF |
+| `axon generate [--html\|--pdf\|--skip-dsl\|--dsl-only\|--render-puml]` | Build architecture HTML/PDF and render PlantUML diagrams |
 | `axon board [--no-generate\|--html\|--pdf]` | Refresh visual task board and compile |
 | `axon list [type] [--board]` | List documents |
 | `axon promote <experiment-num> [-t TITLE]` | Promote experiment to ADR |
@@ -229,6 +229,13 @@ axon generate --pdf
 
 # Skip cleaning stale SVG caches
 axon generate --skip-clean
+
+# Export Structurizr DSL to PlantUML only
+axon generate --dsl-only
+
+# Render PlantUML files to SVG (or specified format)
+axon generate --render-puml
+axon generate --render-puml custom-diagram.puml --format png --out-dir output_dir
 ```
 
 ### Visual task board

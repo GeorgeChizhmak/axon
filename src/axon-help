@@ -13,7 +13,7 @@ eval "$("$axon_bin_dir/axon-config")"
 ## Available commands:
 ##   init       Initialise a new documentation workspace
 ##   new        Create a new document (adr, tdr, data-card, etc.)
-##   generate   Render HTML and PDF documentation reports
+##   generate   Build HTML/PDF or export PlantUML diagrams
 ##   board      Refresh visual task board (BOARD.adoc) and compile HTML
 ##   list       List documents of a given type
 ##   promote    Promote a successful experiment to an ADR
