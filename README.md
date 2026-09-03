@@ -263,7 +263,7 @@ Tests run entirely in a temp directory — no Docker required.
 ## Design Decisions
 
 - **Modelled on `adr-tools`**: Same dispatcher + sub-script + template pattern for maximum simplicity and hackability
-- **AsciiDoc + Kroki.io**: Diagrams rendered server-side — no local PlantUML install required for HTML builds
+- **AsciiDoc + Local Rendering**: Diagrams rendered locally — closed on-premise system with no external cloud dependencies
 - **Auto-include injection**: New ADRs and TDRs are automatically wired into the Arc42 aggregator sections via `awk`
 - **Zero framework dependencies**: Pure Bash — works on macOS and Linux with `bash` 4+, `sed`, `awk`, `find`
 - **Cross-platform**: No `grep -P` (PCRE), no `sed -i` without extension; BSD and GNU userland both supported; `declare -A` replaced with portable `case` helpers
