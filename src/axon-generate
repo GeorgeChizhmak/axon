@@ -43,20 +43,63 @@ DO_PDF=true
 DO_DSL=true
 DO_CLEAN=true
 EXPLICIT_FORMAT=false
+DO_RENDER_PUML=false
+PUML_TARGET=""
+PUML_FORMAT="svg"
+PUML_OUT_DIR=""
 
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --html)       DO_HTML=true;  DO_PDF=false; EXPLICIT_FORMAT=true ;;
         --pdf)        DO_PDF=true;   DO_HTML=false; EXPLICIT_FORMAT=true ;;
         --all)        DO_HTML=true;  DO_PDF=true ;;
         --skip-dsl)   DO_DSL=false ;;
         --skip-clean) DO_CLEAN=false ;;
+        --dsl-only)
+                      DO_DSL=true
+                      DO_HTML=false
+                      DO_PDF=false
+                      DO_CLEAN=false
+                      DO_RENDER_PUML=false
+                      EXPLICIT_FORMAT=true
+                      ;;
+        --render-puml)
+                      DO_RENDER_PUML=true
+                      DO_HTML=false
+                      DO_PDF=false
+                      DO_CLEAN=false
+                      DO_DSL=false
+                      EXPLICIT_FORMAT=true
+                      if [[ $# -gt 1 && ! "$2" == -* ]]; then
+                          PUML_TARGET="$2"
+                          shift
+                      fi
+                      ;;
+        --format)
+                      if [[ $# -gt 1 && ! "$2" == -* ]]; then
+                          PUML_FORMAT="$2"
+                          shift
+                      else
+                          error "--format requires an argument"
+                          exit 1
+                      fi
+                      ;;
+        --out-dir)
+                      if [[ $# -gt 1 && ! "$2" == -* ]]; then
+                          PUML_OUT_DIR="$2"
+                          shift
+                      else
+                          error "--out-dir requires an argument"
+                          exit 1
+                      fi
+                      ;;
         *)
-            error "Unknown option: $arg"
-            printf "Usage: axon generate [--html] [--pdf] [--all] [--skip-dsl] [--skip-clean]\n" >&2
+            error "Unknown option: $1"
+            printf "Usage: axon generate [--html] [--pdf] [--all] [--skip-dsl] [--skip-clean] [--dsl-only] [--render-puml [path]] [--format fmt] [--out-dir dir]\n" >&2
             exit 1
             ;;
     esac
+    shift
 done
 
 # ── Resolve workspace ─────────────────────────────────────────────────────────
@@ -88,7 +131,7 @@ printf "\n"
 check_prereqs() {
     local missing=0
 
-    if $DO_DSL; then
+    if $DO_DSL || $DO_RENDER_PUML; then
         if ! command -v docker >/dev/null 2>&1; then
             error "Docker is not installed or not in PATH. Use --skip-dsl to skip DSL export."
             missing=1
@@ -194,17 +237,56 @@ render_pdf() {
     success "PDF  → $out"
 }
 
+# ── 6. Render PlantUML ────────────────────────────────────────────────────────
+render_puml() {
+    info "Rendering PlantUML..."
+
+    local target="${PUML_TARGET:-$DIAGRAMS_DIR}"
+    local out_dir="${PUML_OUT_DIR:-$DIAGRAMS_DIR}"
+    local format="${PUML_FORMAT:-svg}"
+
+    if [ ! -e "$target" ]; then
+        error "PlantUML target not found: $target"
+        exit 1
+    fi
+
+    mkdir -p "$out_dir"
+
+    local target_dir
+    local target_file=""
+    if [ -d "$target" ]; then
+        target_dir="$(cd "$target" && pwd)"
+    else
+        target_dir="$(cd "$(dirname "$target")" && pwd)"
+        target_file="/$(basename "$target")"
+    fi
+    local out_abs
+    out_abs="$(cd "$out_dir" && pwd)"
+
+    docker run --rm \
+        -v "${target_dir}:/data" \
+        -v "${out_abs}:/out" \
+        plantuml/plantuml \
+        -t"${format}" \
+        -o "/out" \
+        "/data${target_file}"
+
+    success "PlantUML rendering complete."
+}
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 check_prereqs
 
-$DO_DSL    && export_dsl
-$DO_CLEAN  && clean_stale_svgs
-$DO_HTML   && render_html
-$DO_PDF    && render_pdf
+$DO_DSL          && export_dsl
+$DO_RENDER_PUML  && render_puml
+$DO_CLEAN        && clean_stale_svgs
+$DO_HTML         && render_html
+$DO_PDF          && render_pdf
 
 printf "\n"
 success "Build complete. Files ready to commit:"
 $DO_HTML && printf "    %s/%s_architecture.html\n" "$DOCS_DIR" "$PROJECT_BASENAME"
 $DO_PDF  && printf "    %s/%s_architecture.pdf\n"  "$DOCS_DIR" "$PROJECT_BASENAME"
 $DO_DSL  && printf "    %s/\n" "$DIAGRAMS_DIR"
+$DO_RENDER_PUML && printf "    %s/\n" "${PUML_OUT_DIR:-$DIAGRAMS_DIR}"
 printf "\n"
